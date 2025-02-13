@@ -3,7 +3,8 @@ import AVFoundation
 
 struct QRScannerView: UIViewControllerRepresentable {
     @Binding var isPresented: Bool
-    
+    @Binding var scannedURL: String? // Store scanned URL
+
     class Coordinator: NSObject, AVCaptureMetadataOutputObjectsDelegate {
         var parent: QRScannerView
         
@@ -13,10 +14,20 @@ struct QRScannerView: UIViewControllerRepresentable {
         
         func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
             if let metadataObject = metadataObjects.first as? AVMetadataMachineReadableCodeObject,
-               let qrCode = metadataObject.stringValue {
-                print("Scanned QR Code: \(qrCode)")
+               let scannedData = metadataObject.stringValue {
+                
+                print("✅ Scanned QR Code: \(scannedData)")
+
                 DispatchQueue.main.async {
-                    self.parent.isPresented = false // Close scanner after scanning
+                    self.parent.scannedURL = scannedData // Save scanned URL
+                    self.parent.isPresented = false // Close scanner
+                    
+                    // Open the URL in Safari
+                    if let url = URL(string: scannedData), UIApplication.shared.canOpenURL(url) {
+                        UIApplication.shared.open(url)
+                    } else {
+                        print("❌ Invalid QR Code URL")
+                    }
                 }
             }
         }

@@ -21,7 +21,8 @@ struct SplashScreen: View {
 }
 
 struct LandingPage: View {
-    @State private var isShowingScanner = false // State to control scanner presentation
+    @State private var isShowingScanner = false
+    @State private var scannedURL: String? // Store the scanned URL
     
     var body: some View {
         ZStack {
@@ -40,7 +41,7 @@ struct LandingPage: View {
 
                 // QR Code Scanner Button
                 Button(action: {
-                    isShowingScanner = true // Show scanner when tapped
+                    isShowingScanner = true
                 }) {
                     Text("Register with QR Code")
                         .frame(maxWidth: .infinity)
@@ -50,8 +51,8 @@ struct LandingPage: View {
                         .foregroundColor(.white)
                 }
                 .frame(width: 200)
-                .sheet(isPresented: $isShowingScanner) { // Present scanner as sheet
-                    QRScannerView(isPresented: $isShowingScanner)
+                .sheet(isPresented: $isShowingScanner) {
+                    QRScannerView(isPresented: $isShowingScanner, scannedURL: $scannedURL)
                 }
 
                 // Activation Button
@@ -68,11 +69,20 @@ struct LandingPage: View {
                 .frame(width: 200)
             }
         }
+        .onChange(of: scannedURL) { newURL in
+            if let urlString = newURL, let url = URL(string: urlString), UIApplication.shared.canOpenURL(url) {
+                UIApplication.shared.open(url)
+            } else {
+                print("❌ Invalid QR Code URL")
+            }
+        }
     }
 }
 
+
 struct DetectionScreen: View {
     @State private var isCollectingData = true // Toggle for data collection
+    @StateObject private var audioRecorder = AudioRecorder() // Add Audio Recorder
     
     var body: some View {
         NavigationView {
@@ -124,16 +134,20 @@ struct DetectionScreen: View {
                 
                 Spacer()
                 
-                // Microphone Button
+                // Microphone Button for Recording
                 Button(action: {
-                    // Microphone toggle logic
+                    if audioRecorder.isRecording {
+                        audioRecorder.stopRecording()
+                    } else {
+                        audioRecorder.startRecording()
+                    }
                 }) {
-                    Image(systemName: "mic.fill")
+                    Image(systemName: audioRecorder.isRecording ? "stop.circle.fill" : "mic.fill")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 50, height: 50)
                         .padding()
-                        .background(Color.blue)
+                        .background(audioRecorder.isRecording ? Color.red : Color.blue)
                         .cornerRadius(25)
                         .foregroundColor(.white)
                 }
@@ -141,7 +155,7 @@ struct DetectionScreen: View {
             }
             .background(Color.black.edgesIgnoringSafeArea(.all))
             .navigationBarTitle("Detection", displayMode: .inline)
-            .navigationBarItems(trailing: menuButton) // Adds the top dropdown menu
+            .navigationBarItems(trailing: menuButton)
         }
     }
     
@@ -184,6 +198,7 @@ struct DetectionScreen: View {
         print("Showing About screen...") // Replace with About page navigation
     }
 }
+
 
 
 
