@@ -1,0 +1,111 @@
+# Xcode
+#
+# gitignore contributors: remember to update Global/Xcode.gitignore, Objective-C.gitignore & Swift.gitignore
+
+## User settings
+xcuserdata/
+
+## compatibility with Xcode 8 and earlier (ignoring not required starting Xcode 9)
+*.xcscmblueprint
+*.xccheckout
+
+## compatibility with Xcode 3 and earlier (ignoring not required starting Xcode 4)
+build/
+DerivedData/
+
+## Xcode 4 and 5
+*.moved-aside
+*.xcuserstate
+
+## Xcode 6
+*.xccheckout
+*.xcscmblueprint
+
+## Xcode 7
+*.xccheckout
+*.xcscmblueprint
+
+## Xcode 8
+*.xccheckout
+*.xcscmblueprint
+
+## Xcode 9
+*.xccheckout
+*.xcscmblueprint
+
+## Xcode 10
+*.xccheckout
+*.xcscmblueprint
+
+## Xcode 11
+*.xccheckout
+*.xcscmblueprint
+
+## Xcode 12
+*.xccheckout
+*.xcscmblueprint
+
+## Xcode 13
+*.xccheckout
+*.xcscmblueprint
+
+## Xcode 14
+*.xccheckout
+*.xcscmblueprint
+
+## Xcode 15
+*.xccheckout
+*.xcscmblueprint
+
+# Swift Package Manager
+#
+# Add this line if you want to avoid checking in source code from Swift Package Manager dependencies.
+# Packages/
+# Package.pins
+# Package.resolved
+# .swiftpm/
+
+# CocoaPods
+#
+# We recommend against adding the Pods directory to your .gitignore. However
+# you should judge for yourself, the pros and cons are mentioned at:
+# https://guides.cocoapods.org/using/using-cocoapods.html
+#
+# Pods/
+# .podspec
+
+# Carthage
+#
+# Add this line if you want to avoid checking in source code from Carthage dependencies.
+# Carthage/Build/
+
+# fastlane
+#
+# It is recommended to not store the screenshots in the git repository.
+# Instead, use fastlane to re-generate the screenshots whenever they are needed.
+# For more information about the recommended setup visit:
+# https://docs.fastlane.tools/best-practices/source-control/
+
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# Code Injection
+#
+# Avoid checking in the generated code injection files.
+# See https://github.com/johnno1962/injectionforxcode for more information.
+#
+# iOSInjectionProject/
+
+# AppCode
+#
+# AppCode is an IDE for iOS/macOS development by JetBrains.
+# See https://www.jetbrains.com/objc/ for more information.
+#
+# .idea/
+
+# macOS
+#
+# General macOS file system files
+.DS_Store
