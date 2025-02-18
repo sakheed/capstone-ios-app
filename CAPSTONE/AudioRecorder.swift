@@ -1,72 +1,65 @@
 import Foundation
 import AVFoundation
+import AudioKit
+import AudioKitEX
+import SoundpipeAudioKit
+import SoundAnalysis
 
-class AudioRecorder: NSObject, ObservableObject {
-    var audioRecorder: AVAudioRecorder?
-    @Published var isRecording = false
+class AudioRecorder: ObservableObject {
+    var engine = AudioEngine()
+    var mic: AudioEngine.InputNode
+    var tracker: PitchTap!
     
-    override init() {
-        super.init()
+    @Published var isRecording = false
+    @Published var amplitude: Float = 0.0
+    @Published var frequency: Float = 0.0
+    
+    init() {
+        mic = engine.input!
         requestMicrophonePermission()
+        setupAudioKit()
     }
     
     func requestMicrophonePermission() {
-        if #available(iOS 17.0, *) {
-            AVAudioApplication.requestRecordPermission { granted in
-                DispatchQueue.main.async {
-                    if granted {
-                        print("✅ Microphone permission granted.")
-                    } else {
-                        print("❌ Microphone permission denied.")
-                    }
-                }
-            }
-        } else {
-            AVAudioSession.sharedInstance().requestRecordPermission { granted in
-                DispatchQueue.main.async {
-                    if granted {
-                        print("✅ Microphone permission granted.")
-                    } else {
-                        print("❌ Microphone permission denied.")
-                    }
+        AVAudioApplication.requestRecordPermission { granted in
+            DispatchQueue.main.async {
+                if granted {
+                    print("✅ Microphone permission granted.")
+                } else {
+                    print("❌ Microphone permission denied.")
                 }
             }
         }
     }
     
-    // Start recording
-    func startRecording() {
-        let audioSession = AVAudioSession.sharedInstance()
-        
-        do {
-            try audioSession.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetooth])
-            try audioSession.setActive(true)
+    func setupAudioKit() {
+        tracker = PitchTap(mic) { freqs, amps in
+            DispatchQueue.main.async {
+                self.frequency = freqs.first ?? 0.0
+                self.amplitude = amps.first ?? 0.0
+            }
+        }
 
-            let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            let audioFilename = documentsPath.appendingPathComponent("recording.m4a")
-            
-            let settings: [String: Any] = [
-                AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
-                AVSampleRateKey: 44100,
-                AVNumberOfChannelsKey: 1,
-                AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
-            ]
-            
-            audioRecorder = try AVAudioRecorder(url: audioFilename, settings: settings)
-            audioRecorder?.record()
+        // Add a "dummy" output to prevent engine error
+        let silence = Fader(mic, gain: 0)  // Fader prevents output sound
+        engine.output = silence
+    }
+    
+    func startRecording() {
+        do {
+            try engine.start()
+            tracker.start()
             isRecording = true
-            print("🎤 Recording started at: \(audioFilename)")
-            
+            print("🎤 AudioKit recording started.")
         } catch {
-            print("❌ Failed to start recording: \(error)")
+            print("❌ Failed to start AudioKit: \(error)")
         }
     }
     
-    // Stop recording
     func stopRecording() {
-        audioRecorder?.stop()
-        audioRecorder = nil
+        tracker.stop()
+        engine.stop()
         isRecording = false
-        print("⏹️ Recording stopped.")
+        print("⏹️ AudioKit recording stopped.")
     }
 }

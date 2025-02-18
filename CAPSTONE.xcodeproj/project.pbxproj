@@ -6,6 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		07ADA51C2D651F8700083DF7 /* AudioKitEX in Frameworks */ = {isa = PBXBuildFile; productRef = 07ADA51B2D651F8700083DF7 /* AudioKitEX */; };
+		07ADA5342D6520D200083DF7 /* SoundpipeAudioKit in Frameworks */ = {isa = PBXBuildFile; productRef = 07ADA5332D6520D200083DF7 /* SoundpipeAudioKit */; };
+		07DB4DE02D6138C900FFBCF6 /* AudioKit in Frameworks */ = {isa = PBXBuildFile; productRef = 07DB4DDF2D6138C900FFBCF6 /* AudioKit */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		234121422D5BB99C00165412 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -65,6 +71,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				07DB4DE02D6138C900FFBCF6 /* AudioKit in Frameworks */,
+				07ADA51C2D651F8700083DF7 /* AudioKitEX in Frameworks */,
+				07ADA5342D6520D200083DF7 /* SoundpipeAudioKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -125,6 +134,9 @@
 			);
 			name = CAPSTONE;
 			packageProductDependencies = (
+				07DB4DDF2D6138C900FFBCF6 /* AudioKit */,
+				07ADA51B2D651F8700083DF7 /* AudioKitEX */,
+				07ADA5332D6520D200083DF7 /* SoundpipeAudioKit */,
 			);
 			productName = CAPSTONE;
 			productReference = 234121312D5BB99B00165412 /* CAPSTONE.app */;
@@ -208,6 +220,11 @@
 			);
 			mainGroup = 234121282D5BB99B00165412;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				07DB4DDE2D6138C900FFBCF6 /* XCRemoteSwiftPackageReference "AudioKit" */,
+				07ADA51A2D651F8700083DF7 /* XCRemoteSwiftPackageReference "AudioKitEX" */,
+				07ADA5322D6520D200083DF7 /* XCRemoteSwiftPackageReference "SoundpipeAudioKit" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 234121322D5BB99B00165412 /* Products */;
 			projectDirPath = "";
@@ -409,7 +426,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"CAPSTONE/Preview Content\"";
-				DEVELOPMENT_TEAM = Z93DL5B7LF;
+				DEVELOPMENT_TEAM = Y6JQR8W4AZ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = CAPSTONE/Info.plist;
@@ -426,7 +443,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.sakheed.capstone;
+				PRODUCT_BUNDLE_IDENTIFIER = com.amans.capstone;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -442,7 +459,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"CAPSTONE/Preview Content\"";
-				DEVELOPMENT_TEAM = Z93DL5B7LF;
+				DEVELOPMENT_TEAM = Y6JQR8W4AZ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = CAPSTONE/Info.plist;
@@ -459,7 +476,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.sakheed.capstone;
+				PRODUCT_BUNDLE_IDENTIFIER = com.amans.capstone;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -575,6 +592,51 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		07ADA51A2D651F8700083DF7 /* XCRemoteSwiftPackageReference "AudioKitEX" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/AudioKit/AudioKitEX.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.6.1;
+			};
+		};
+		07ADA5322D6520D200083DF7 /* XCRemoteSwiftPackageReference "SoundpipeAudioKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/AudioKit/SoundpipeAudioKit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.6.1;
+			};
+		};
+		07DB4DDE2D6138C900FFBCF6 /* XCRemoteSwiftPackageReference "AudioKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/AudioKit/AudioKit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.6.4;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		07ADA51B2D651F8700083DF7 /* AudioKitEX */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 07ADA51A2D651F8700083DF7 /* XCRemoteSwiftPackageReference "AudioKitEX" */;
+			productName = AudioKitEX;
+		};
+		07ADA5332D6520D200083DF7 /* SoundpipeAudioKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 07ADA5322D6520D200083DF7 /* XCRemoteSwiftPackageReference "SoundpipeAudioKit" */;
+			productName = SoundpipeAudioKit;
+		};
+		07DB4DDF2D6138C900FFBCF6 /* AudioKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 07DB4DDE2D6138C900FFBCF6 /* XCRemoteSwiftPackageReference "AudioKit" */;
+			productName = AudioKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 234121292D5BB99B00165412 /* Project object */;
 }
