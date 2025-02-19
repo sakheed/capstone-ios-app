@@ -81,8 +81,7 @@ struct LandingPage: View {
 
 
 struct DetectionScreen: View {
-    @State private var isCollectingData = true // Toggle for data collection
-    @StateObject private var audioRecorder = AudioRecorder() // Add Audio Recorder
+    @StateObject private var audioRecorder = AudioRecorder() // Audio Recorder instance
     
     var body: some View {
         NavigationView {
@@ -122,25 +121,20 @@ struct DetectionScreen: View {
                 }
                 .padding()
                 
-                // Data Collection Toggle
-                Toggle(isOn: $isCollectingData) {
-                    Text("Data Collection")
+                // Debug info to display live amplitude and frequency
+                VStack {
+                    Text("Frequency: \(String(format: "%.2f", audioRecorder.frequency)) Hz")
+                        .foregroundColor(.white)
+                    Text("Amplitude: \(String(format: "%.2f", audioRecorder.amplitude))")
                         .foregroundColor(.white)
                 }
                 .padding()
-                .background(Color.gray.opacity(0.2))
-                .cornerRadius(10)
-                .padding(.horizontal, 20)
                 
                 Spacer()
                 
-                // Microphone Button for Recording
+                // Microphone Button for Toggling Recording
                 Button(action: {
-                    if audioRecorder.isRecording {
-                        audioRecorder.stopRecording()
-                    } else {
-                        audioRecorder.startRecording()
-                    }
+                    audioRecorder.toggleRecording()
                 }) {
                     Image(systemName: audioRecorder.isRecording ? "stop.circle.fill" : "mic.fill")
                         .resizable()
@@ -169,7 +163,6 @@ struct DetectionScreen: View {
                 Label("Export Detections (CSV)", systemImage: "square.and.arrow.down")
             }
             Divider() // Adds a visual separator
-            
             Button(role: .destructive, action: deleteData) {
                 Label("Delete Data", systemImage: "trash")
             }
@@ -187,17 +180,18 @@ struct DetectionScreen: View {
     
     // MARK: - Action Handlers
     func exportData(type: String) {
-        print("Exporting \(type) file...") // Replace with actual export logic
+        print("Exporting \(type) file...")
     }
-
+    
     func deleteData() {
-        print("Deleting data...") // Replace with data deletion logic
+        print("Deleting data...")
     }
     
     func showAbout() {
-        print("Showing About screen...") // Replace with About page navigation
+        print("Showing About screen...")
     }
 }
+
 
 
 

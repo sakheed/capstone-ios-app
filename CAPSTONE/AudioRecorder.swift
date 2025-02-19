@@ -39,9 +39,9 @@ class AudioRecorder: ObservableObject {
                 self.amplitude = amps.first ?? 0.0
             }
         }
-
+        
         // Add a "dummy" output to prevent engine error
-        let silence = Fader(mic, gain: 0)  // Fader prevents output sound
+        let silence = Fader(mic, gain: 0)
         engine.output = silence
     }
     
@@ -61,5 +61,14 @@ class AudioRecorder: ObservableObject {
         engine.stop()
         isRecording = false
         print("⏹️ AudioKit recording stopped.")
+    }
+    
+    // New toggle method to switch between start and stop
+    func toggleRecording() {
+        if isRecording {
+            stopRecording()
+        } else {
+            startRecording()
+        }
     }
 }
