@@ -38,6 +38,20 @@ struct LandingPage: View {
                 Text("Welcome to SignalQ!")
                     .font(.title2)
                     .foregroundColor(.white)
+                
+                //Company url
+                Link("Visit SignalQ Website", destination: URL(string: "https://www.signalq.com")!)
+                    .font(.title2)
+                    .foregroundColor(.blue)
+                
+                //Description of app
+                Text("SignalQ is a software-only signal intelligence platform that provides a low-cost, simple to incorporate, military-grade event detection capability that can leverage freely-associated mobile phones as sensors.")
+                    .font(.subheadline)
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
+                        .padding()
+                
+
 
                 // QR Code Scanner Button
                 Button(action: {
