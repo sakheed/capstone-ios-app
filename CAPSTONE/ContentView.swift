@@ -38,6 +38,12 @@ struct LandingPage: View {
                 Text("Welcome to SignalQ!")
                     .font(.title2)
                     .foregroundColor(.white)
+                
+                //Company url
+                Link("Visit SignalQ Website", destination: URL(string: "https://www.signalq.com")!)
+                    .font(.title2)
+                    .foregroundColor(.blue)
+
 
                 // QR Code Scanner Button
                 Button(action: {
