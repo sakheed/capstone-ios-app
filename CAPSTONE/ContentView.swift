@@ -6,6 +6,25 @@
 //
 
 import SwiftUI
+import UIKit
+
+// A simple wrapper so that our export item is Identifiable.
+struct ExportItem: Identifiable {
+    let id = UUID()
+    let url: URL
+}
+
+struct ActivityView: UIViewControllerRepresentable {
+    let activityItems: [Any]
+    let applicationActivities: [UIActivity]? = nil
+    
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+         return UIActivityViewController(activityItems: activityItems, applicationActivities: applicationActivities)
+    }
+    
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) { }
+}
+
 
 struct SplashScreen: View {
     var body: some View {
@@ -83,7 +102,7 @@ struct LandingPage: View {
                 .frame(width: 200)
             }
         }
-        .onChange(of: scannedURL) { newURL in
+        .onChange(of: scannedURL) { newURL, _ in
             if let urlString = newURL, let url = URL(string: urlString), UIApplication.shared.canOpenURL(url) {
                 UIApplication.shared.open(url)
             } else {
@@ -94,8 +113,13 @@ struct LandingPage: View {
 }
 
 
+
+
 struct DetectionScreen: View {
     @StateObject private var audioRecorder = AudioRecorder() // Audio Recorder instance
+    
+    // Instead of a separate Boolean, use an optional ExportItem.
+    @State private var exportItem: ExportItem? = nil
     
     var body: some View {
         NavigationView {
@@ -165,6 +189,10 @@ struct DetectionScreen: View {
             .navigationBarTitle("Detection", displayMode: .inline)
             .navigationBarItems(trailing: menuButton)
         }
+        // Present the share sheet when exportItem is non-nil.
+        .sheet(item: $exportItem) { item in
+            ActivityView(activityItems: [item.url])
+        }
     }
     
     // MARK: - Dropdown Menu
@@ -194,7 +222,32 @@ struct DetectionScreen: View {
     
     // MARK: - Action Handlers
     func exportData(type: String) {
-        print("Exporting \(type) file...")
+        if type == "WAV" {
+            let fileManager = FileManager.default
+            if let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first {
+                let fileURL = documentsDirectory.appendingPathComponent("combinedAudio.caf")
+                print("Looking for file at: \(fileURL.path)")
+                do {
+                    let contents = try fileManager.contentsOfDirectory(atPath: documentsDirectory.path)
+                    print("Documents directory contents: \(contents)")
+                } catch {
+                    print("Error listing Documents directory: \(error)")
+                }
+                
+                if fileManager.fileExists(atPath: fileURL.path) {
+                    DispatchQueue.main.async {
+                        // Set exportItem with the found URL to trigger the sheet.
+                        self.exportItem = ExportItem(url: fileURL)
+                        print("Exporting audio file from: \(fileURL.path)")
+                    }
+                } else {
+                    print("❌ Combined audio file not found at expected path.")
+                }
+            }
+        } else if type == "CSV" {
+            print("Exporting \(type) file...")
+            // Add your CSV export logic here.
+        }
     }
     
     func deleteData() {
@@ -205,11 +258,6 @@ struct DetectionScreen: View {
         print("Showing About screen...")
     }
 }
-
-
-
-
-
 
 
 
