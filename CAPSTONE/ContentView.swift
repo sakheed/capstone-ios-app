@@ -8,7 +8,7 @@
 import SwiftUI
 import UIKit
 
-// A simple wrapper so that our export item is Identifiable.
+
 struct ExportItem: Identifiable {
     let id = UUID()
     let url: URL
@@ -90,7 +90,7 @@ struct LandingPage: View {
 
                 // Activation Button
                 Button(action: {
-                    // Activation logic
+                    
                 }) {
                     Text("Activate")
                         .frame(maxWidth: .infinity)
@@ -116,27 +116,45 @@ struct LandingPage: View {
 
 
 struct DetectionScreen: View {
-    @StateObject private var audioRecorder = AudioRecorder() // Audio Recorder instance
+    @StateObject private var audioRecorder = AudioRecorder()
+    @StateObject private var locationManager = LocationManager()
+
     
-    // Instead of a separate Boolean, use an optional ExportItem.
+
     @State private var exportItem: ExportItem? = nil
     
     var body: some View {
         NavigationView {
             VStack {
-                // Top Status Section
+                // Display current GPS data
+                if let location = locationManager.currentLocation {
+                    VStack(spacing: 4) {
+                        Text("Latitude: \(location.coordinate.latitude)")
+                            .foregroundColor(.white)
+                        Text("Longitude: \(location.coordinate.longitude)")
+                            .foregroundColor(.white)
+                    }
+                    .padding()
+                } else {
+                    Text("Waiting for location...")
+                        .foregroundColor(.gray)
+                        .padding()
+                }
+                
+                // Existing GPS status indicator (you may update this accordingly)
                 HStack {
                     Text("GPS: Active")
                         .font(.headline)
                         .foregroundColor(.green)
                     Spacer()
-                    Text("11:02:41")
+                    // Optionally, update the time display here if needed
+                    Text(Date(), style: .time)
                         .foregroundColor(.gray)
                 }
                 .padding()
                 .background(Color.black.opacity(0.8))
                 
-                // Detection Confidence List
+                // Your detection confidence views, audio recording display, etc.
                 VStack {
                     HStack {
                         Text("Hands")
@@ -159,7 +177,7 @@ struct DetectionScreen: View {
                 }
                 .padding()
                 
-                // Debug info to display live amplitude and frequency
+                // Debug info for audio data
                 VStack {
                     Text("Frequency: \(String(format: "%.2f", audioRecorder.frequency)) Hz")
                         .foregroundColor(.white)
@@ -170,7 +188,7 @@ struct DetectionScreen: View {
                 
                 Spacer()
                 
-                // Microphone Button for Toggling Recording
+                // Microphone button for toggling recording
                 Button(action: {
                     audioRecorder.toggleRecording()
                 }) {
@@ -193,6 +211,10 @@ struct DetectionScreen: View {
         .sheet(item: $exportItem) { item in
             ActivityView(activityItems: [item.url])
         }
+        // Optionally start location updates when the view appears.
+        .onAppear {
+            locationManager.startUpdating()
+        }
     }
     
     // MARK: - Dropdown Menu
@@ -204,7 +226,7 @@ struct DetectionScreen: View {
             Button(action: { exportData(type: "CSV") }) {
                 Label("Export Detections (CSV)", systemImage: "square.and.arrow.down")
             }
-            Divider() // Adds a visual separator
+            Divider() //
             Button(role: .destructive, action: deleteData) {
                 Label("Delete Data", systemImage: "trash")
             }
@@ -236,7 +258,7 @@ struct DetectionScreen: View {
                 
                 if fileManager.fileExists(atPath: fileURL.path) {
                     DispatchQueue.main.async {
-                        // Set exportItem with the found URL to trigger the sheet.
+   
                         self.exportItem = ExportItem(url: fileURL)
                         print("Exporting audio file from: \(fileURL.path)")
                     }

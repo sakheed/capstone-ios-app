@@ -426,11 +426,14 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"CAPSTONE/Preview Content\"";
-				DEVELOPMENT_TEAM = Y6JQR8W4AZ;
+				DEVELOPMENT_TEAM = Z93DL5B7LF;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = CAPSTONE/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "This app collects location data both in the foreground and background to provide uninterrupted GPS tracking for accurate event detection and analysis.";
+				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "This app needs access to your location at all times to continuously capture GPS data for real-time event detection, even when running in the background.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app uses your location to detect nearby events and enhance your user experience while you’re using the app.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We need microphone access to record audio.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -443,7 +446,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.amans.capstone;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sakheed.capstone;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -459,11 +462,14 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"CAPSTONE/Preview Content\"";
-				DEVELOPMENT_TEAM = Y6JQR8W4AZ;
+				DEVELOPMENT_TEAM = Z93DL5B7LF;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = CAPSTONE/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "This app collects location data both in the foreground and background to provide uninterrupted GPS tracking for accurate event detection and analysis.";
+				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "This app needs access to your location at all times to continuously capture GPS data for real-time event detection, even when running in the background.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app uses your location to detect nearby events and enhance your user experience while you’re using the app.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We need microphone access to record audio.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -476,7 +482,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.amans.capstone;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sakheed.capstone;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
