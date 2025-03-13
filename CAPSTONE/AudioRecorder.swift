@@ -8,21 +8,47 @@ import SoundAnalysis
 class AudioRecorder: ObservableObject {
     var engine = AudioEngine()
     var mic: AudioEngine.InputNode
+    var mixer: Mixer         // Used for PitchTap (frequency/amplitude)
+    var detectionMixer: Mixer // Used for gunshot detection tap
     var tracker: PitchTap!
     
-    // Accumulate buffers for the current 30-second chunk.
-    var currentChunk: [AVAudioPCMBuffer] = []
-    // Array to hold finalized fixed chunks.
-    var fixedChunks: [[AVAudioPCMBuffer]] = []
+    // Rolling buffer for pre-trigger audio (holds the last 5 seconds)
+    var rollingBuffer: [AVAudioPCMBuffer] = []
+    
+    // Variables for post-trigger capture
+    var isTriggered: Bool = false
+    var postTriggerBuffers: [AVAudioPCMBuffer] = []
+    var postTriggerAccumulatedDuration: Double = 0.0
     
     let bufferSize = 2048
-
+    
+    // Parameters for gunshot detection
+    let preTriggerDuration: Double = 5.0       // seconds to keep before the trigger
+    let postTriggerDuration: Double = 5.0      // seconds to capture after the trigger
+    let triggerThreshold: Float = 0.4          // amplitude threshold for a loud sound (for testing)
+    
     @Published var isRecording = false
     @Published var amplitude: Float = 0.0
     @Published var frequency: Float = 0.0
-
+    
+    // Computed property for decibel conversion.
+    var amplitudeDB: Float {
+        if amplitude <= 0 { return -100.0 }
+        else { return 20 * log10(amplitude) }
+    }
+    
     init() {
         mic = engine.input!
+        // Create a mixer for PitchTap.
+        mixer = Mixer(mic)
+        mixer.volume = 1.0
+        // Create a second mixer for gunshot detection, taking input from the first mixer.
+        detectionMixer = Mixer(mixer)
+        detectionMixer.volume = 1.0
+        
+        // Route the engine output to the detection mixer.
+        engine.output = detectionMixer
+        
         requestMicrophonePermission()
         setupAudioKit()
     }
@@ -40,19 +66,16 @@ class AudioRecorder: ObservableObject {
     }
     
     func setupAudioKit() {
-        let hardwareFormat = mic.avAudioNode.inputFormat(forBus: 0)
+        let hardwareFormat = mixer.avAudioNode.inputFormat(forBus: 0)
         print("🎤 Hardware sample rate: \(hardwareFormat.sampleRate), channels: \(hardwareFormat.channelCount)")
         
-        tracker = PitchTap(mic) { freqs, amps in
+        // Set up PitchTap on the first mixer.
+        tracker = PitchTap(mixer) { freqs, amps in
             DispatchQueue.main.async {
                 self.frequency = freqs.first ?? 0.0
                 self.amplitude = amps.first ?? 0.0
             }
         }
-        
-        // Dummy output to keep the engine happy.
-        let silence = Fader(mic, gain: 0)
-        engine.output = silence
     }
     
     func startRecording() {
@@ -60,13 +83,11 @@ class AudioRecorder: ObservableObject {
             try engine.start()
             tracker.start()
             isRecording = true
-            print("🎤 Engine running? \(engine.avEngine.isRunning)")
-            print("🎤 AudioKit recording started.")
+            print("🎤 AudioKit recording started. Engine running: \(engine.avEngine.isRunning)")
             
-            // Remove any existing tap to avoid conflicts.
-            mic.avAudioNode.removeTap(onBus: 0)
-            // Let the system choose the native format by passing nil.
-            mic.avAudioNode.installTap(onBus: 0, bufferSize: AVAudioFrameCount(bufferSize), format: nil) { (buffer, time) in
+            // Install a tap on the detectionMixer for gunshot detection.
+            detectionMixer.avAudioNode.removeTap(onBus: 0)
+            detectionMixer.avAudioNode.installTap(onBus: 0, bufferSize: AVAudioFrameCount(bufferSize), format: nil) { buffer, time in
                 self.storeAudioBuffer(buffer)
             }
         } catch {
@@ -76,41 +97,77 @@ class AudioRecorder: ObservableObject {
     
     func storeAudioBuffer(_ buffer: AVAudioPCMBuffer) {
         DispatchQueue.main.async {
-            // Append the new buffer to the current chunk.
-            self.currentChunk.append(buffer)
+            // Append new buffer to the rollingBuffer.
+            self.rollingBuffer.append(buffer)
             
-            // Calculate the total duration of the current chunk.
-            let totalDuration = self.currentChunk.reduce(0.0) { (sum, buf) -> Double in
+            // Trim rollingBuffer to only keep the last preTriggerDuration seconds.
+            var totalPreDuration = self.rollingBuffer.reduce(0.0) { sum, buf in
                 sum + Double(buf.frameLength) / buf.format.sampleRate
             }
+            while totalPreDuration > self.preTriggerDuration, let first = self.rollingBuffer.first {
+                totalPreDuration -= Double(first.frameLength) / first.format.sampleRate
+                self.rollingBuffer.removeFirst()
+            }
             
-            // If we've accumulated 30 seconds (or more), finalize this chunk.
-            if totalDuration >= 30.0 {
-                print("✅ Fixed 30-second chunk saved! Total duration: \(totalDuration) seconds.")
-                self.fixedChunks.append(self.currentChunk)
-                self.currentChunk = []  // Start a new chunk.
+            // Check for trigger condition.
+            if !self.isTriggered && self.amplitude > self.triggerThreshold {
+                self.isTriggered = true
+                self.postTriggerBuffers = []          // Reset post-trigger buffers.
+                self.postTriggerAccumulatedDuration = 0.0
+                print("Gunshot detected! Amp: \(self.amplitude) exceeds threshold: \(self.triggerThreshold)")
+            }
+            
+            // If triggered, accumulate post-trigger buffers.
+            if self.isTriggered {
+                self.postTriggerBuffers.append(buffer)
+                let bufferDuration = Double(buffer.frameLength) / buffer.format.sampleRate
+                self.postTriggerAccumulatedDuration += bufferDuration
+                
+                if self.postTriggerAccumulatedDuration >= self.postTriggerDuration {
+                    let combinedBuffers = self.rollingBuffer + self.postTriggerBuffers
+                    self.saveGunshotClip(buffers: combinedBuffers)
+                    self.isTriggered = false
+                    self.postTriggerBuffers = []
+                    self.postTriggerAccumulatedDuration = 0.0
+                }
             }
         }
     }
     
+    func saveGunshotClip(buffers: [AVAudioPCMBuffer]) {
+        guard let firstBuffer = buffers.first else {
+            print("No audio data to save for gunshot clip.")
+            return
+        }
+        let format = firstBuffer.format
+        let fileManager = FileManager.default
+        guard let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            print("Unable to access the document directory")
+            return
+        }
+        let fileName = "gunshot_\(Date().timeIntervalSince1970).caf"
+        let fileURL = documentsDirectory.appendingPathComponent(fileName)
+        
+        do {
+            let audioFile = try AVAudioFile(forWriting: fileURL,
+                                            settings: format.settings,
+                                            commonFormat: format.commonFormat,
+                                            interleaved: format.isInterleaved)
+            for buffer in buffers {
+                try audioFile.write(from: buffer)
+            }
+            print("Gunshot clip saved at \(fileURL.path)")
+        } catch {
+            print("Error saving gunshot clip: \(error)")
+        }
+    }
+    
     func stopRecording() {
-        mic.avAudioNode.removeTap(onBus: 0)
+        detectionMixer.avAudioNode.removeTap(onBus: 0)
         tracker.stop()
         engine.stop()
         isRecording = false
-        print("⏹️ AudioKit recording stopped.")
-        
-        // Print the duration of the last (unfinished) chunk.
-        let finalDuration = currentChunk.reduce(0.0) { (sum, buf) -> Double in
-            sum + Double(buf.frameLength) / buf.format.sampleRate
-        }
-        print("Final incomplete chunk duration: \(finalDuration) seconds.")
-        
-        // Save all fixed chunks to separate files (if desired).
-        saveAllFixedChunks()
-        
-        // Combine all fixed chunks (and any remaining current chunk) into one seamless file.
-        combineAndSaveChunks()
+        print("🎤 AudioKit recording stopped.")
     }
     
     func toggleRecording() {
@@ -118,95 +175,6 @@ class AudioRecorder: ObservableObject {
             stopRecording()
         } else {
             startRecording()
-        }
-    }
-    
-    // Optionally, retrieve all fixed chunks.
-    func getFixedChunks() -> [[AVAudioPCMBuffer]] {
-        return fixedChunks
-    }
-    
-    // MARK: - Saving Individual Chunks
-    
-    /// Save a single fixed chunk to a file.
-    func saveChunkToFile(chunk: [AVAudioPCMBuffer], fileName: String) {
-        guard let firstBuffer = chunk.first else {
-            print("No audio data to save!")
-            return
-        }
-        let format = firstBuffer.format
-        
-        let fileManager = FileManager.default
-        guard let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
-            print("Unable to access the document directory")
-            return
-        }
-        let fileURL = documentsDirectory.appendingPathComponent(fileName)
-        
-        do {
-            let audioFile = try AVAudioFile(
-                forWriting: fileURL,
-                settings: format.settings,
-                commonFormat: format.commonFormat,
-                interleaved: format.isInterleaved
-            )
-            for buffer in chunk {
-                try audioFile.write(from: buffer)
-            }
-            print("Saved chunk to file at \(fileURL.path)")
-        } catch {
-            print("Error saving audio file: \(error)")
-        }
-    }
-    
-    /// Save all fixed chunks individually.
-    func saveAllFixedChunks() {
-        for (index, chunk) in fixedChunks.enumerated() {
-            let fileName = "fixedChunk_\(index).caf"
-            saveChunkToFile(chunk: chunk, fileName: fileName)
-        }
-    }
-    
-    // MARK: - Combining Chunks into One Seamless File
-    
-    /// Combine all fixed chunks and any leftover current chunk into one seamless audio file.
-    func combineAndSaveChunks() {
-        // Flatten fixed chunks into one array of buffers.
-        var allBuffers: [AVAudioPCMBuffer] = []
-        for chunk in fixedChunks {
-            allBuffers.append(contentsOf: chunk)
-        }
-        // Optionally include any unfinished current chunk.
-        if !currentChunk.isEmpty {
-            allBuffers.append(contentsOf: currentChunk)
-        }
-        
-        guard let firstBuffer = allBuffers.first else {
-            print("No audio data to combine.")
-            return
-        }
-        let format = firstBuffer.format
-        
-        let fileManager = FileManager.default
-        guard let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
-            print("Unable to access the document directory")
-            return
-        }
-        let fileURL = documentsDirectory.appendingPathComponent("combinedAudio.caf")
-        
-        do {
-            let audioFile = try AVAudioFile(
-                forWriting: fileURL,
-                settings: format.settings,
-                commonFormat: format.commonFormat,
-                interleaved: format.isInterleaved
-            )
-            for buffer in allBuffers {
-                try audioFile.write(from: buffer)
-            }
-            print("Combined audio file saved at \(fileURL.path)")
-        } catch {
-            print("Error combining and saving audio file: \(error)")
         }
     }
 }

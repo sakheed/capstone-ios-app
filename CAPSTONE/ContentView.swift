@@ -114,13 +114,9 @@ struct LandingPage: View {
 
 
 
-
 struct DetectionScreen: View {
     @StateObject private var audioRecorder = AudioRecorder()
     @StateObject private var locationManager = LocationManager()
-
-    
-
     @State private var exportItem: ExportItem? = nil
     
     var body: some View {
@@ -141,20 +137,19 @@ struct DetectionScreen: View {
                         .padding()
                 }
                 
-                // Existing GPS status indicator (you may update this accordingly)
+                // GPS status indicator
                 HStack {
                     Text("GPS: Active")
                         .font(.headline)
                         .foregroundColor(.green)
                     Spacer()
-                    // Optionally, update the time display here if needed
                     Text(Date(), style: .time)
                         .foregroundColor(.gray)
                 }
                 .padding()
                 .background(Color.black.opacity(0.8))
                 
-                // Your detection confidence views, audio recording display, etc.
+                // Detection confidence views (if applicable)
                 VStack {
                     HStack {
                         Text("Hands")
@@ -178,17 +173,23 @@ struct DetectionScreen: View {
                 .padding()
                 
                 // Debug info for audio data
-                VStack {
+                VStack(spacing: 10) {
                     Text("Frequency: \(String(format: "%.2f", audioRecorder.frequency)) Hz")
                         .foregroundColor(.white)
-                    Text("Amplitude: \(String(format: "%.2f", audioRecorder.amplitude))")
+                    Text("Amplitude (raw): \(String(format: "%.2f", audioRecorder.amplitude))")
                         .foregroundColor(.white)
+                    Text("Amplitude (dB): \(String(format: "%.2f", audioRecorder.amplitudeDB)) dB")
+                        .foregroundColor(.white)
+                    // Optionally, add a progress view for amplitude (normalized 0...1)
+                    ProgressView(value: min(max(audioRecorder.amplitude, 0), 1))
+                        .progressViewStyle(LinearProgressViewStyle(tint: .blue))
+                        .padding(.horizontal)
                 }
                 .padding()
                 
                 Spacer()
                 
-                // Microphone button for toggling recording
+                // Microphone Button for Toggling Recording
                 Button(action: {
                     audioRecorder.toggleRecording()
                 }) {
@@ -207,11 +208,9 @@ struct DetectionScreen: View {
             .navigationBarTitle("Detection", displayMode: .inline)
             .navigationBarItems(trailing: menuButton)
         }
-        // Present the share sheet when exportItem is non-nil.
         .sheet(item: $exportItem) { item in
             ActivityView(activityItems: [item.url])
         }
-        // Optionally start location updates when the view appears.
         .onAppear {
             locationManager.startUpdating()
         }
@@ -226,7 +225,7 @@ struct DetectionScreen: View {
             Button(action: { exportData(type: "CSV") }) {
                 Label("Export Detections (CSV)", systemImage: "square.and.arrow.down")
             }
-            Divider() //
+            Divider()
             Button(role: .destructive, action: deleteData) {
                 Label("Delete Data", systemImage: "trash")
             }
@@ -258,7 +257,6 @@ struct DetectionScreen: View {
                 
                 if fileManager.fileExists(atPath: fileURL.path) {
                     DispatchQueue.main.async {
-   
                         self.exportItem = ExportItem(url: fileURL)
                         print("Exporting audio file from: \(fileURL.path)")
                     }
@@ -280,7 +278,6 @@ struct DetectionScreen: View {
         print("Showing About screen...")
     }
 }
-
 
 
 struct ContentView: View {
