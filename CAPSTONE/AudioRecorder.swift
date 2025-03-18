@@ -8,45 +8,48 @@ import SoundAnalysis
 class AudioRecorder: ObservableObject {
     var engine = AudioEngine()
     var mic: AudioEngine.InputNode
-    var mixer: Mixer         // Used for PitchTap (frequency/amplitude)
-    var detectionMixer: Mixer // Used for gunshot detection tap
+    
+    var mixer: Mixer         // For PitchTap (frequency/amplitude)
+    var detectionMixer: Mixer // For installing a tap
+    
     var tracker: PitchTap!
     
-    // Rolling buffer for pre-trigger audio (holds the last 5 seconds)
+    // Rolling buffer for up to 5 seconds of pre‑event audio
     var rollingBuffer: [AVAudioPCMBuffer] = []
     
-    // Variables for post-trigger capture
-    var isTriggered: Bool = false
-    var postTriggerBuffers: [AVAudioPCMBuffer] = []
-    var postTriggerAccumulatedDuration: Double = 0.0
+    // Post-event capture
+    var isTriggered = false
+    var preSnapshot: [AVAudioPCMBuffer] = []
+    var postBuffers: [AVAudioPCMBuffer] = []
+    var postAccumulated: Double = 0.0
     
+    // Buffer/timing parameters
     let bufferSize = 2048
-    
-    // Parameters for gunshot detection
-    let preTriggerDuration: Double = 5.0       // seconds to keep before the trigger
-    let postTriggerDuration: Double = 5.0      // seconds to capture after the trigger
-    let triggerThreshold: Float = 0.4          // amplitude threshold for a loud sound (for testing)
+    let preTriggerDuration: Double = 5.0
+    let postTriggerDuration: Double = 5.0
+    let triggerThreshold: Float = 0.4 // amplitude threshold
     
     @Published var isRecording = false
     @Published var amplitude: Float = 0.0
     @Published var frequency: Float = 0.0
     
-    // Computed property for decibel conversion.
+    // Convert raw amplitude to dB for UI
     var amplitudeDB: Float {
-        if amplitude <= 0 { return -100.0 }
-        else { return 20 * log10(amplitude) }
+        amplitude <= 0 ? -100.0 : 20 * log10(amplitude)
     }
     
     init() {
         mic = engine.input!
-        // Create a mixer for PitchTap.
+        
+        // 1) Mixer for PitchTap
         mixer = Mixer(mic)
         mixer.volume = 1.0
-        // Create a second mixer for gunshot detection, taking input from the first mixer.
+        
+        // 2) Second mixer for detection tap
         detectionMixer = Mixer(mixer)
         detectionMixer.volume = 1.0
         
-        // Route the engine output to the detection mixer.
+        // Engine output is the detectionMixer
         engine.output = detectionMixer
         
         requestMicrophonePermission()
@@ -69,7 +72,7 @@ class AudioRecorder: ObservableObject {
         let hardwareFormat = mixer.avAudioNode.inputFormat(forBus: 0)
         print("🎤 Hardware sample rate: \(hardwareFormat.sampleRate), channels: \(hardwareFormat.channelCount)")
         
-        // Set up PitchTap on the first mixer.
+        // PitchTap to track frequency & amplitude
         tracker = PitchTap(mixer) { freqs, amps in
             DispatchQueue.main.async {
                 self.frequency = freqs.first ?? 0.0
@@ -85,9 +88,13 @@ class AudioRecorder: ObservableObject {
             isRecording = true
             print("🎤 AudioKit recording started. Engine running: \(engine.avEngine.isRunning)")
             
-            // Install a tap on the detectionMixer for gunshot detection.
+            // Remove old tap, then install a new tap on detectionMixer
             detectionMixer.avAudioNode.removeTap(onBus: 0)
-            detectionMixer.avAudioNode.installTap(onBus: 0, bufferSize: AVAudioFrameCount(bufferSize), format: nil) { buffer, time in
+            detectionMixer.avAudioNode.installTap(
+                onBus: 0,
+                bufferSize: AVAudioFrameCount(bufferSize),
+                format: nil
+            ) { buffer, time in
                 self.storeAudioBuffer(buffer)
             }
         } catch {
@@ -97,38 +104,60 @@ class AudioRecorder: ObservableObject {
     
     func storeAudioBuffer(_ buffer: AVAudioPCMBuffer) {
         DispatchQueue.main.async {
-            // Append new buffer to the rollingBuffer.
+            // 1) Always append the new buffer to rollingBuffer
             self.rollingBuffer.append(buffer)
             
-            // Trim rollingBuffer to only keep the last preTriggerDuration seconds.
-            var totalPreDuration = self.rollingBuffer.reduce(0.0) { sum, buf in
+            // 2) Trim rollingBuffer to ~5 seconds
+            var totalDuration = self.rollingBuffer.reduce(0.0) { sum, buf in
                 sum + Double(buf.frameLength) / buf.format.sampleRate
             }
-            while totalPreDuration > self.preTriggerDuration, let first = self.rollingBuffer.first {
-                totalPreDuration -= Double(first.frameLength) / first.format.sampleRate
+            while totalDuration > self.preTriggerDuration, let first = self.rollingBuffer.first {
+                totalDuration -= Double(first.frameLength) / first.format.sampleRate
                 self.rollingBuffer.removeFirst()
             }
             
-            // Check for trigger condition.
-            if !self.isTriggered && self.amplitude > self.triggerThreshold {
+            // 3) If not triggered yet, check amplitude for event
+            if !self.isTriggered, self.amplitude > self.triggerThreshold {
+                print("Gunshot detected! Amp: \(self.amplitude) > \(self.triggerThreshold)")
+                
+                // a) Snapshot the rolling buffer as "pre"
+                self.preSnapshot = self.rollingBuffer
+                
+                // b) Remove the current buffer from rollingBuffer so we don't double-include it
+                if let last = self.rollingBuffer.last, last === buffer {
+                    self.rollingBuffer.removeLast()
+                }
+                
+                // c) Start post capture
                 self.isTriggered = true
-                self.postTriggerBuffers = []          // Reset post-trigger buffers.
-                self.postTriggerAccumulatedDuration = 0.0
-                print("Gunshot detected! Amp: \(self.amplitude) exceeds threshold: \(self.triggerThreshold)")
+                self.postBuffers = []
+                self.postAccumulated = 0.0
+                
+                // d) The entire "event" buffer is considered post
+                self.postBuffers.append(buffer)
+                let dur = Double(buffer.frameLength) / buffer.format.sampleRate
+                self.postAccumulated += dur
+                
+                return
             }
             
-            // If triggered, accumulate post-trigger buffers.
+            // 4) If triggered, accumulate post buffers
             if self.isTriggered {
-                self.postTriggerBuffers.append(buffer)
-                let bufferDuration = Double(buffer.frameLength) / buffer.format.sampleRate
-                self.postTriggerAccumulatedDuration += bufferDuration
+                self.postBuffers.append(buffer)
+                let dur = Double(buffer.frameLength) / buffer.format.sampleRate
+                self.postAccumulated += dur
                 
-                if self.postTriggerAccumulatedDuration >= self.postTriggerDuration {
-                    let combinedBuffers = self.rollingBuffer + self.postTriggerBuffers
-                    self.saveGunshotClip(buffers: combinedBuffers)
+                // 5) Once we have 5 seconds of post, combine & save
+                if self.postAccumulated >= self.postTriggerDuration {
+                    // Combine pre + post
+                    let combined = self.preSnapshot + self.postBuffers
+                    self.saveGunshotClip(buffers: combined)
+                    
+                    // Reset
                     self.isTriggered = false
-                    self.postTriggerBuffers = []
-                    self.postTriggerAccumulatedDuration = 0.0
+                    self.preSnapshot = []
+                    self.postBuffers = []
+                    self.postAccumulated = 0.0
                 }
             }
         }
@@ -136,29 +165,34 @@ class AudioRecorder: ObservableObject {
     
     func saveGunshotClip(buffers: [AVAudioPCMBuffer]) {
         guard let firstBuffer = buffers.first else {
-            print("No audio data to save for gunshot clip.")
+            print("No audio data to save.")
             return
         }
         let format = firstBuffer.format
         let fileManager = FileManager.default
+        
         guard let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
-            print("Unable to access the document directory")
+            print("Unable to access document directory")
             return
         }
-        let fileName = "gunshot_\(Date().timeIntervalSince1970).caf"
+        
+        // We'll name it "gunshot_prePost_..."
+        let fileName = "gunshot_prePost_\(Date().timeIntervalSince1970).caf"
         let fileURL = documentsDirectory.appendingPathComponent(fileName)
         
         do {
-            let audioFile = try AVAudioFile(forWriting: fileURL,
-                                            settings: format.settings,
-                                            commonFormat: format.commonFormat,
-                                            interleaved: format.isInterleaved)
-            for buffer in buffers {
-                try audioFile.write(from: buffer)
+            let audioFile = try AVAudioFile(
+                forWriting: fileURL,
+                settings: format.settings,
+                commonFormat: format.commonFormat,
+                interleaved: format.isInterleaved
+            )
+            for buf in buffers {
+                try audioFile.write(from: buf)
             }
-            print("Gunshot clip saved at \(fileURL.path)")
+            print("Pre+Post clip saved at \(fileURL.path)")
         } catch {
-            print("Error saving gunshot clip: \(error)")
+            print("Error saving clip: \(error)")
         }
     }
     
@@ -167,7 +201,7 @@ class AudioRecorder: ObservableObject {
         tracker.stop()
         engine.stop()
         isRecording = false
-        print("🎤 AudioKit recording stopped.")
+        print("⏹️ AudioKit recording stopped.")
     }
     
     func toggleRecording() {

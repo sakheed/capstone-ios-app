@@ -7,7 +7,7 @@
 
 import SwiftUI
 import UIKit
-
+import ZIPFoundation
 
 struct ExportItem: Identifiable {
     let id = UUID()
@@ -287,28 +287,47 @@ struct DetectionScreen: View {
         }
     }
     
-    // MARK: - Action Handlers
     func exportData(type: String) {
         if type == "WAV" {
             let fileManager = FileManager.default
-            if let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first {
-                let fileURL = documentsDirectory.appendingPathComponent("combinedAudio.caf")
-                print("Looking for file at: \(fileURL.path)")
-                do {
-                    let contents = try fileManager.contentsOfDirectory(atPath: documentsDirectory.path)
-                    print("Documents directory contents: \(contents)")
-                } catch {
-                    print("Error listing Documents directory: \(error)")
+            guard let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
+                print("Documents directory not found")
+                return
+            }
+            do {
+                // Get all files in Documents that are gunshot clips
+                let files = try fileManager.contentsOfDirectory(at: documentsDirectory, includingPropertiesForKeys: nil)
+                let gunshotFiles = files.filter {
+                    $0.lastPathComponent.hasPrefix("gunshot_") && $0.pathExtension.lowercased() == "caf"
                 }
                 
-                if fileManager.fileExists(atPath: fileURL.path) {
-                    DispatchQueue.main.async {
-                        self.exportItem = ExportItem(url: fileURL)
-                        print("Exporting audio file from: \(fileURL.path)")
-                    }
-                } else {
-                    print("❌ Combined audio file not found at expected path.")
+                if gunshotFiles.isEmpty {
+                    print("No gunshot audio clip files found.")
+                    return
                 }
+                
+                // Create the zip file URL
+                let zipFileURL = documentsDirectory.appendingPathComponent("audioClips.zip")
+                
+                // Remove existing zip file if present
+                if fileManager.fileExists(atPath: zipFileURL.path) {
+                    try fileManager.removeItem(at: zipFileURL)
+                }
+                
+                // ✅ Use the new throwing initializer
+                let archive = try Archive(url: zipFileURL, accessMode: .create)
+                
+                // Add each gunshot file to the archive
+                for fileURL in gunshotFiles {
+                    try archive.addEntry(with: fileURL.lastPathComponent, relativeTo: documentsDirectory)
+                }
+                
+                DispatchQueue.main.async {
+                    self.exportItem = ExportItem(url: zipFileURL)
+                    print("Exporting audio ZIP file from: \(zipFileURL.path)")
+                }
+            } catch {
+                print("Error exporting audio ZIP: \(error)")
             }
         } else if type == "CSV" {
             print("Exporting \(type) file...")

@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		07ADA51C2D651F8700083DF7 /* AudioKitEX in Frameworks */ = {isa = PBXBuildFile; productRef = 07ADA51B2D651F8700083DF7 /* AudioKitEX */; };
 		07ADA5342D6520D200083DF7 /* SoundpipeAudioKit in Frameworks */ = {isa = PBXBuildFile; productRef = 07ADA5332D6520D200083DF7 /* SoundpipeAudioKit */; };
+		07C564792D890E99003C5032 /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = 07C564782D890E99003C5032 /* ZIPFoundation */; };
 		07DB4DE02D6138C900FFBCF6 /* AudioKit in Frameworks */ = {isa = PBXBuildFile; productRef = 07DB4DDF2D6138C900FFBCF6 /* AudioKit */; };
 /* End PBXBuildFile section */
 
@@ -74,6 +75,7 @@
 				07DB4DE02D6138C900FFBCF6 /* AudioKit in Frameworks */,
 				07ADA51C2D651F8700083DF7 /* AudioKitEX in Frameworks */,
 				07ADA5342D6520D200083DF7 /* SoundpipeAudioKit in Frameworks */,
+				07C564792D890E99003C5032 /* ZIPFoundation in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -137,6 +139,7 @@
 				07DB4DDF2D6138C900FFBCF6 /* AudioKit */,
 				07ADA51B2D651F8700083DF7 /* AudioKitEX */,
 				07ADA5332D6520D200083DF7 /* SoundpipeAudioKit */,
+				07C564782D890E99003C5032 /* ZIPFoundation */,
 			);
 			productName = CAPSTONE;
 			productReference = 234121312D5BB99B00165412 /* CAPSTONE.app */;
@@ -224,6 +227,7 @@
 				07DB4DDE2D6138C900FFBCF6 /* XCRemoteSwiftPackageReference "AudioKit" */,
 				07ADA51A2D651F8700083DF7 /* XCRemoteSwiftPackageReference "AudioKitEX" */,
 				07ADA5322D6520D200083DF7 /* XCRemoteSwiftPackageReference "SoundpipeAudioKit" */,
+				07C564772D890BC0003C5032 /* XCRemoteSwiftPackageReference "ZIPFoundation" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 234121322D5BB99B00165412 /* Products */;
@@ -426,7 +430,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"CAPSTONE/Preview Content\"";
-				DEVELOPMENT_TEAM = Z93DL5B7LF;
+				DEVELOPMENT_TEAM = Y6JQR8W4AZ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = CAPSTONE/Info.plist;
@@ -435,6 +439,7 @@
 				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "This app needs access to your location at all times to continuously capture GPS data for real-time event detection, even when running in the background.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app uses your location to detect nearby events and enhance your user experience while you’re using the app.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We need microphone access to record audio.";
+				INFOPLIST_KEY_NSMotionUsageDescription = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -446,7 +451,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.sakheed.capstone;
+				PRODUCT_BUNDLE_IDENTIFIER = com.amans.capstone;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -462,7 +467,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"CAPSTONE/Preview Content\"";
-				DEVELOPMENT_TEAM = Z93DL5B7LF;
+				DEVELOPMENT_TEAM = Y6JQR8W4AZ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = CAPSTONE/Info.plist;
@@ -471,6 +476,7 @@
 				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "This app needs access to your location at all times to continuously capture GPS data for real-time event detection, even when running in the background.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app uses your location to detect nearby events and enhance your user experience while you’re using the app.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We need microphone access to record audio.";
+				INFOPLIST_KEY_NSMotionUsageDescription = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -482,7 +488,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.sakheed.capstone;
+				PRODUCT_BUNDLE_IDENTIFIER = com.amans.capstone;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -616,6 +622,14 @@
 				minimumVersion = 5.6.1;
 			};
 		};
+		07C564772D890BC0003C5032 /* XCRemoteSwiftPackageReference "ZIPFoundation" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/weichsel/ZIPFoundation";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.9.19;
+			};
+		};
 		07DB4DDE2D6138C900FFBCF6 /* XCRemoteSwiftPackageReference "AudioKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/AudioKit/AudioKit.git";
@@ -636,6 +650,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 07ADA5322D6520D200083DF7 /* XCRemoteSwiftPackageReference "SoundpipeAudioKit" */;
 			productName = SoundpipeAudioKit;
+		};
+		07C564782D890E99003C5032 /* ZIPFoundation */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 07C564772D890BC0003C5032 /* XCRemoteSwiftPackageReference "ZIPFoundation" */;
+			productName = ZIPFoundation;
 		};
 		07DB4DDF2D6138C900FFBCF6 /* AudioKit */ = {
 			isa = XCSwiftPackageProductDependency;
