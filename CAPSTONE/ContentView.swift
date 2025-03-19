@@ -115,6 +115,24 @@ struct LandingPage: View {
 
 
 struct DetectionScreen: View {
+    
+    struct DetectionRecord: Identifiable {
+        let id = UUID()
+        let timestamp: Date
+        let gpsLatitude: Double
+        let gpsLongitude: Double
+        let pressure: Double
+        let orientationPitch: Double
+        let orientationRoll: Double
+        let orientationYaw: Double
+        let gyroX: Double
+        let gyroY: Double
+        let gyroZ: Double
+    }
+    
+    @State private var detectionRecords: [DetectionRecord] = []
+
+
     @StateObject private var audioRecorder = AudioRecorder()
     @StateObject private var locationManager = LocationManager()
     
@@ -260,6 +278,28 @@ struct DetectionScreen: View {
         .onAppear {
             locationManager.startUpdating()
         }
+        .onAppear {
+            locationManager.startUpdating()
+            
+            NotificationCenter.default.addObserver(forName: Notification.Name("DetectionOccurred"), object: nil, queue: .main) { notification in
+                // Capture the sensor data snapshot at the time of detection.
+                let record = DetectionRecord(
+                    timestamp: notification.userInfo?["timestamp"] as? Date ?? Date(),
+                    gpsLatitude: locationManager.currentLocation?.coordinate.latitude ?? 0.0,
+                    gpsLongitude: locationManager.currentLocation?.coordinate.longitude ?? 0.0,
+                    pressure: pressureManager.pressure ?? 0.0,
+                    orientationPitch: orientationManager.attitude?.pitch ?? 0.0,
+                    orientationRoll: orientationManager.attitude?.roll ?? 0.0,
+                    orientationYaw: orientationManager.attitude?.yaw ?? 0.0,
+                    gyroX: gyroscopeManager.rotationRate?.x ?? 0.0,
+                    gyroY: gyroscopeManager.rotationRate?.y ?? 0.0,
+                    gyroZ: gyroscopeManager.rotationRate?.z ?? 0.0
+                )
+                detectionRecords.append(record)
+                print("Detection record saved: \(record)")
+            }
+        }
+
     }
     
     var menuButton: some View {
@@ -344,32 +384,21 @@ struct DetectionScreen: View {
     }
     
     func exportCSV() {
-        // Build CSV header
+        // CSV header remains the same.
         var csvText = "Timestamp,GPS_Latitude,GPS_Longitude,Pressure,Orientation_Pitch,Orientation_Roll,Orientation_Yaw,Gyro_X,Gyro_Y,Gyro_Z\n"
         
-        // Capture current sensor data
-        let timestamp = Date()
-        let gpsLatitude = locationManager.currentLocation?.coordinate.latitude ?? 0.0
-        let gpsLongitude = locationManager.currentLocation?.coordinate.longitude ?? 0.0
-        let pressureValue = pressureManager.pressure ?? 0.0
-        let orientationPitch = orientationManager.attitude?.pitch ?? 0.0
-        let orientationRoll = orientationManager.attitude?.roll ?? 0.0
-        let orientationYaw = orientationManager.attitude?.yaw ?? 0.0
-        let gyroX = gyroscopeManager.rotationRate?.x ?? 0.0
-        let gyroY = gyroscopeManager.rotationRate?.y ?? 0.0
-        let gyroZ = gyroscopeManager.rotationRate?.z ?? 0.0
+        // Build CSV rows from each detection record.
+        for record in detectionRecords {
+            let newLine = "\(record.timestamp),\(record.gpsLatitude),\(record.gpsLongitude),\(record.pressure),\(record.orientationPitch),\(record.orientationRoll),\(record.orientationYaw),\(record.gyroX),\(record.gyroY),\(record.gyroZ)\n"
+            csvText.append(newLine)
+        }
         
-        // Create a CSV row
-        let newLine = "\(timestamp),\(gpsLatitude),\(gpsLongitude),\(pressureValue),\(orientationPitch),\(orientationRoll),\(orientationYaw),\(gyroX),\(gyroY),\(gyroZ)\n"
-        csvText.append(newLine)
-        
-        // Write CSV to a file in the Documents directory
+        // Write CSV to a file in the Documents directory.
         let fileManager = FileManager.default
         if let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first {
             let fileURL = documentsDirectory.appendingPathComponent("sensorData.csv")
             do {
                 try csvText.write(to: fileURL, atomically: true, encoding: .utf8)
-                // Set the export item to show the share sheet (for testing, the user can "Save to Files")
                 DispatchQueue.main.async {
                     self.exportItem = ExportItem(url: fileURL)
                 }
@@ -379,6 +408,7 @@ struct DetectionScreen: View {
             }
         }
     }
+
 
 
 }

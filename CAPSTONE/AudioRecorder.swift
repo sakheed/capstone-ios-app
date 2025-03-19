@@ -176,7 +176,6 @@ class AudioRecorder: ObservableObject {
             return
         }
         
-        // We'll name it "gunshot_prePost_..."
         let fileName = "gunshot_prePost_\(Date().timeIntervalSince1970).caf"
         let fileURL = documentsDirectory.appendingPathComponent(fileName)
         
@@ -191,10 +190,17 @@ class AudioRecorder: ObservableObject {
                 try audioFile.write(from: buf)
             }
             print("Pre+Post clip saved at \(fileURL.path)")
+            
+            // Post a notification so that the sensor snapshot can be captured.
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: Notification.Name("DetectionOccurred"), object: nil, userInfo: ["timestamp": Date()])
+            }
+            
         } catch {
             print("Error saving clip: \(error)")
         }
     }
+
     
     func stopRecording() {
         detectionMixer.avAudioNode.removeTap(onBus: 0)
