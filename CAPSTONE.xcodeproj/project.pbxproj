@@ -11,6 +11,11 @@
 		07ADA5342D6520D200083DF7 /* SoundpipeAudioKit in Frameworks */ = {isa = PBXBuildFile; productRef = 07ADA5332D6520D200083DF7 /* SoundpipeAudioKit */; };
 		07C564792D890E99003C5032 /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = 07C564782D890E99003C5032 /* ZIPFoundation */; };
 		07DB4DE02D6138C900FFBCF6 /* AudioKit in Frameworks */ = {isa = PBXBuildFile; productRef = 07DB4DDF2D6138C900FFBCF6 /* AudioKit */; };
+		842E19492D8B06DE00DF0789 /* GRPCProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = 842E19482D8B06DE00DF0789 /* GRPCProtobuf */; };
+		842E194B2D8B06DE00DF0789 /* protoc-gen-grpc-swift in Frameworks */ = {isa = PBXBuildFile; productRef = 842E194A2D8B06DE00DF0789 /* protoc-gen-grpc-swift */; };
+		842E194E2D8B06FE00DF0789 /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = 842E194D2D8B06FE00DF0789 /* SwiftProtobuf */; };
+		842E19502D8B06FE00DF0789 /* SwiftProtobufPluginLibrary in Frameworks */ = {isa = PBXBuildFile; productRef = 842E194F2D8B06FE00DF0789 /* SwiftProtobufPluginLibrary */; };
+		842E19522D8B06FE00DF0789 /* protoc-gen-swift in Frameworks */ = {isa = PBXBuildFile; productRef = 842E19512D8B06FE00DF0789 /* protoc-gen-swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -74,8 +79,13 @@
 			files = (
 				07DB4DE02D6138C900FFBCF6 /* AudioKit in Frameworks */,
 				07ADA51C2D651F8700083DF7 /* AudioKitEX in Frameworks */,
+				842E194B2D8B06DE00DF0789 /* protoc-gen-grpc-swift in Frameworks */,
 				07ADA5342D6520D200083DF7 /* SoundpipeAudioKit in Frameworks */,
+				842E19502D8B06FE00DF0789 /* SwiftProtobufPluginLibrary in Frameworks */,
+				842E19522D8B06FE00DF0789 /* protoc-gen-swift in Frameworks */,
 				07C564792D890E99003C5032 /* ZIPFoundation in Frameworks */,
+				842E194E2D8B06FE00DF0789 /* SwiftProtobuf in Frameworks */,
+				842E19492D8B06DE00DF0789 /* GRPCProtobuf in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -140,6 +150,11 @@
 				07ADA51B2D651F8700083DF7 /* AudioKitEX */,
 				07ADA5332D6520D200083DF7 /* SoundpipeAudioKit */,
 				07C564782D890E99003C5032 /* ZIPFoundation */,
+				842E19482D8B06DE00DF0789 /* GRPCProtobuf */,
+				842E194A2D8B06DE00DF0789 /* protoc-gen-grpc-swift */,
+				842E194D2D8B06FE00DF0789 /* SwiftProtobuf */,
+				842E194F2D8B06FE00DF0789 /* SwiftProtobufPluginLibrary */,
+				842E19512D8B06FE00DF0789 /* protoc-gen-swift */,
 			);
 			productName = CAPSTONE;
 			productReference = 234121312D5BB99B00165412 /* CAPSTONE.app */;
@@ -228,6 +243,8 @@
 				07ADA51A2D651F8700083DF7 /* XCRemoteSwiftPackageReference "AudioKitEX" */,
 				07ADA5322D6520D200083DF7 /* XCRemoteSwiftPackageReference "SoundpipeAudioKit" */,
 				07C564772D890BC0003C5032 /* XCRemoteSwiftPackageReference "ZIPFoundation" */,
+				842E19472D8B06DE00DF0789 /* XCRemoteSwiftPackageReference "grpc-swift-protobuf" */,
+				842E194C2D8B06FE00DF0789 /* XCRemoteSwiftPackageReference "swift-protobuf" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 234121322D5BB99B00165412 /* Products */;
@@ -445,7 +462,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -482,7 +499,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -638,6 +655,22 @@
 				minimumVersion = 5.6.4;
 			};
 		};
+		842E19472D8B06DE00DF0789 /* XCRemoteSwiftPackageReference "grpc-swift-protobuf" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/grpc/grpc-swift-protobuf";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.1.0;
+			};
+		};
+		842E194C2D8B06FE00DF0789 /* XCRemoteSwiftPackageReference "swift-protobuf" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-protobuf.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.29.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -660,6 +693,31 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 07DB4DDE2D6138C900FFBCF6 /* XCRemoteSwiftPackageReference "AudioKit" */;
 			productName = AudioKit;
+		};
+		842E19482D8B06DE00DF0789 /* GRPCProtobuf */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 842E19472D8B06DE00DF0789 /* XCRemoteSwiftPackageReference "grpc-swift-protobuf" */;
+			productName = GRPCProtobuf;
+		};
+		842E194A2D8B06DE00DF0789 /* protoc-gen-grpc-swift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 842E19472D8B06DE00DF0789 /* XCRemoteSwiftPackageReference "grpc-swift-protobuf" */;
+			productName = "protoc-gen-grpc-swift";
+		};
+		842E194D2D8B06FE00DF0789 /* SwiftProtobuf */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 842E194C2D8B06FE00DF0789 /* XCRemoteSwiftPackageReference "swift-protobuf" */;
+			productName = SwiftProtobuf;
+		};
+		842E194F2D8B06FE00DF0789 /* SwiftProtobufPluginLibrary */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 842E194C2D8B06FE00DF0789 /* XCRemoteSwiftPackageReference "swift-protobuf" */;
+			productName = SwiftProtobufPluginLibrary;
+		};
+		842E19512D8B06FE00DF0789 /* protoc-gen-swift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 842E194C2D8B06FE00DF0789 /* XCRemoteSwiftPackageReference "swift-protobuf" */;
+			productName = "protoc-gen-swift";
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
