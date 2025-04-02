@@ -270,7 +270,9 @@ struct DetectionScreen: View {
             Button(action: { exportCSV() }) {
                 Label("Export Detections (CSV)", systemImage: "square.and.arrow.down")
             }
-
+            Button(action: { serve() }) {
+                Label("Send Detection", systemImage: "square.and.arrow.down")
+            }
             Divider()
             Button(role: .destructive, action: deleteData) {
                 Label("Delete Data", systemImage: "trash")
@@ -417,6 +419,16 @@ struct ContentView: View {
     }
 }
 
+private func serve() {
+    let client = GRPCClient()
+    Task {
+        do {
+            try await client.runClient()
+        } catch {
+            print("Error running client: \(error)")
+        }
+    }
+}
 
 #Preview {
     ContentView()
