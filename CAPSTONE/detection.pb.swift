@@ -34,6 +34,22 @@ struct Signalq_Location: Sendable {
   init() {}
 }
 
+struct Signalq_Classification: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  /// whether it was a gunshot
+  var result: String = String()
+
+  /// confidence 0.0 - 1.0
+  var score: Float = 0
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
 struct Signalq_Detection: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -53,8 +69,7 @@ struct Signalq_Detection: Sendable {
   /// Clears the value of `location`. Subsequent reads from it will return its default value.
   mutating func clearLocation() {self._location = nil}
 
-  /// whether it was a gunshot
-  var classification: String = String()
+  var classification: [Signalq_Classification] = []
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -121,6 +136,44 @@ extension Signalq_Location: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
   }
 }
 
+extension Signalq_Classification: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".Classification"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "result"),
+    2: .same(proto: "score"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.result) }()
+      case 2: try { try decoder.decodeSingularFloatField(value: &self.score) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.result.isEmpty {
+      try visitor.visitSingularStringField(value: self.result, fieldNumber: 1)
+    }
+    if self.score.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.score, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Signalq_Classification, rhs: Signalq_Classification) -> Bool {
+    if lhs.result != rhs.result {return false}
+    if lhs.score != rhs.score {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension Signalq_Detection: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".Detection"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -139,7 +192,7 @@ extension Signalq_Detection: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
       case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
       case 2: try { try decoder.decodeSingularInt64Field(value: &self.timeUtcMilliseconds) }()
       case 3: try { try decoder.decodeSingularMessageField(value: &self._location) }()
-      case 4: try { try decoder.decodeSingularStringField(value: &self.classification) }()
+      case 4: try { try decoder.decodeRepeatedMessageField(value: &self.classification) }()
       default: break
       }
     }
@@ -160,7 +213,7 @@ extension Signalq_Detection: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
       try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
     } }()
     if !self.classification.isEmpty {
-      try visitor.visitSingularStringField(value: self.classification, fieldNumber: 4)
+      try visitor.visitRepeatedMessageField(value: self.classification, fieldNumber: 4)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
