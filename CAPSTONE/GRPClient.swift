@@ -19,7 +19,7 @@ import GRPCNIOTransportHTTP2
 
 
 struct GRPCClient {
-    func runClient() async throws {
+    func runClient(id: String, lat: Double, long: Double) async throws {
         try await withGRPCClient(
             transport: .http2NIOPosix(
                 target: .ipv4(host: "127.0.0.1", port: 50051),
@@ -30,18 +30,23 @@ struct GRPCClient {
             let detectionService = Signalq_DetectionService.Client(wrapping: client)
 
 
-            try await sendDetection(using: detectionService)
+            try await sendDetection(using: detectionService, id: id, lat: lat, long: long)
         }
     }
 
 
-    private func sendDetection(using detectionService: Signalq_DetectionService.ClientProtocol) async throws {
+    private func sendDetection(using detectionService: Signalq_DetectionService.ClientProtocol, id: String, lat: Double, long: Double) async throws {
         print("→ Sending Detection Message")
+        
+        var locationMessage = Signalq_Location()
+        locationMessage.latitude = lat
+        locationMessage.longitude = long
 
 
         // Create a request message (Replace fields as needed)
         var detectionRequest = Signalq_Detection()
-        detectionRequest.id = "12345"
+        detectionRequest.id = id
+        detectionRequest.location = locationMessage
 
 
         // Call gRPC method

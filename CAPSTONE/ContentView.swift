@@ -410,7 +410,18 @@ struct DetectionScreen: View {
             }
         }
     }
-
+    
+    
+    func serve() {
+        let client = GRPCClient()
+        Task {
+            do {
+                try await client.runClient(id: "23456", lat: (locationManager.currentLocation?.coordinate.latitude)!, long: (locationManager.currentLocation?.coordinate.longitude)!)
+            } catch {
+                print("Error running client: \(error)")
+            }
+        }
+    }
 
 
 }
@@ -449,16 +460,6 @@ struct ContentView: View {
     }
 }
 
-private func serve() {
-    let client = GRPCClient()
-    Task {
-        do {
-            try await client.runClient()
-        } catch {
-            print("Error running client: \(error)")
-        }
-    }
-}
 
 #Preview {
     ContentView()
