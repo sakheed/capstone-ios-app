@@ -34,6 +34,81 @@ struct Signalq_Location: Sendable {
   init() {}
 }
 
+struct Signalq_Orientation: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var pitch: Double = 0
+
+  var roll: Double = 0
+
+  var yaw: Double = 0
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+struct Signalq_Gyroscope: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var x: Double = 0
+
+  var y: Double = 0
+
+  var z: Double = 0
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+struct Signalq_SensorData: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var location: Signalq_Location {
+    get {return _location ?? Signalq_Location()}
+    set {_location = newValue}
+  }
+  /// Returns true if `location` has been explicitly set.
+  var hasLocation: Bool {return self._location != nil}
+  /// Clears the value of `location`. Subsequent reads from it will return its default value.
+  mutating func clearLocation() {self._location = nil}
+
+  var pressure: Double = 0
+
+  var orientation: Signalq_Orientation {
+    get {return _orientation ?? Signalq_Orientation()}
+    set {_orientation = newValue}
+  }
+  /// Returns true if `orientation` has been explicitly set.
+  var hasOrientation: Bool {return self._orientation != nil}
+  /// Clears the value of `orientation`. Subsequent reads from it will return its default value.
+  mutating func clearOrientation() {self._orientation = nil}
+
+  var gyroscope: Signalq_Gyroscope {
+    get {return _gyroscope ?? Signalq_Gyroscope()}
+    set {_gyroscope = newValue}
+  }
+  /// Returns true if `gyroscope` has been explicitly set.
+  var hasGyroscope: Bool {return self._gyroscope != nil}
+  /// Clears the value of `gyroscope`. Subsequent reads from it will return its default value.
+  mutating func clearGyroscope() {self._gyroscope = nil}
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+
+  fileprivate var _location: Signalq_Location? = nil
+  fileprivate var _orientation: Signalq_Orientation? = nil
+  fileprivate var _gyroscope: Signalq_Gyroscope? = nil
+}
+
 struct Signalq_Classification: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -60,14 +135,14 @@ struct Signalq_Detection: Sendable {
 
   var timeUtcMilliseconds: Int64 = 0
 
-  var location: Signalq_Location {
-    get {return _location ?? Signalq_Location()}
-    set {_location = newValue}
+  var sensors: Signalq_SensorData {
+    get {return _sensors ?? Signalq_SensorData()}
+    set {_sensors = newValue}
   }
-  /// Returns true if `location` has been explicitly set.
-  var hasLocation: Bool {return self._location != nil}
-  /// Clears the value of `location`. Subsequent reads from it will return its default value.
-  mutating func clearLocation() {self._location = nil}
+  /// Returns true if `sensors` has been explicitly set.
+  var hasSensors: Bool {return self._sensors != nil}
+  /// Clears the value of `sensors`. Subsequent reads from it will return its default value.
+  mutating func clearSensors() {self._sensors = nil}
 
   var classification: [Signalq_Classification] = []
 
@@ -75,7 +150,7 @@ struct Signalq_Detection: Sendable {
 
   init() {}
 
-  fileprivate var _location: Signalq_Location? = nil
+  fileprivate var _sensors: Signalq_SensorData? = nil
 }
 
 struct Signalq_Acknowledgement: Sendable {
@@ -136,6 +211,148 @@ extension Signalq_Location: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
   }
 }
 
+extension Signalq_Orientation: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".Orientation"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "pitch"),
+    2: .same(proto: "roll"),
+    3: .same(proto: "yaw"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularDoubleField(value: &self.pitch) }()
+      case 2: try { try decoder.decodeSingularDoubleField(value: &self.roll) }()
+      case 3: try { try decoder.decodeSingularDoubleField(value: &self.yaw) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.pitch.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.pitch, fieldNumber: 1)
+    }
+    if self.roll.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.roll, fieldNumber: 2)
+    }
+    if self.yaw.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.yaw, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Signalq_Orientation, rhs: Signalq_Orientation) -> Bool {
+    if lhs.pitch != rhs.pitch {return false}
+    if lhs.roll != rhs.roll {return false}
+    if lhs.yaw != rhs.yaw {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Signalq_Gyroscope: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".Gyroscope"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "x"),
+    2: .same(proto: "y"),
+    3: .same(proto: "z"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularDoubleField(value: &self.x) }()
+      case 2: try { try decoder.decodeSingularDoubleField(value: &self.y) }()
+      case 3: try { try decoder.decodeSingularDoubleField(value: &self.z) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.x.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.x, fieldNumber: 1)
+    }
+    if self.y.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.y, fieldNumber: 2)
+    }
+    if self.z.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.z, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Signalq_Gyroscope, rhs: Signalq_Gyroscope) -> Bool {
+    if lhs.x != rhs.x {return false}
+    if lhs.y != rhs.y {return false}
+    if lhs.z != rhs.z {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Signalq_SensorData: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".SensorData"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "location"),
+    2: .same(proto: "pressure"),
+    3: .same(proto: "orientation"),
+    4: .same(proto: "gyroscope"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularMessageField(value: &self._location) }()
+      case 2: try { try decoder.decodeSingularDoubleField(value: &self.pressure) }()
+      case 3: try { try decoder.decodeSingularMessageField(value: &self._orientation) }()
+      case 4: try { try decoder.decodeSingularMessageField(value: &self._gyroscope) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._location {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    } }()
+    if self.pressure.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.pressure, fieldNumber: 2)
+    }
+    try { if let v = self._orientation {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    } }()
+    try { if let v = self._gyroscope {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Signalq_SensorData, rhs: Signalq_SensorData) -> Bool {
+    if lhs._location != rhs._location {return false}
+    if lhs.pressure != rhs.pressure {return false}
+    if lhs._orientation != rhs._orientation {return false}
+    if lhs._gyroscope != rhs._gyroscope {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension Signalq_Classification: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".Classification"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -179,7 +396,7 @@ extension Signalq_Detection: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "id"),
     2: .standard(proto: "time_UTC_milliseconds"),
-    3: .same(proto: "location"),
+    3: .same(proto: "sensors"),
     4: .same(proto: "classification"),
   ]
 
@@ -191,7 +408,7 @@ extension Signalq_Detection: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
       case 2: try { try decoder.decodeSingularInt64Field(value: &self.timeUtcMilliseconds) }()
-      case 3: try { try decoder.decodeSingularMessageField(value: &self._location) }()
+      case 3: try { try decoder.decodeSingularMessageField(value: &self._sensors) }()
       case 4: try { try decoder.decodeRepeatedMessageField(value: &self.classification) }()
       default: break
       }
@@ -209,7 +426,7 @@ extension Signalq_Detection: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     if self.timeUtcMilliseconds != 0 {
       try visitor.visitSingularInt64Field(value: self.timeUtcMilliseconds, fieldNumber: 2)
     }
-    try { if let v = self._location {
+    try { if let v = self._sensors {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
     } }()
     if !self.classification.isEmpty {
@@ -221,7 +438,7 @@ extension Signalq_Detection: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
   static func ==(lhs: Signalq_Detection, rhs: Signalq_Detection) -> Bool {
     if lhs.id != rhs.id {return false}
     if lhs.timeUtcMilliseconds != rhs.timeUtcMilliseconds {return false}
-    if lhs._location != rhs._location {return false}
+    if lhs._sensors != rhs._sensors {return false}
     if lhs.classification != rhs.classification {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
