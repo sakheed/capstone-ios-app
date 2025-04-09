@@ -183,7 +183,6 @@ class AudioRecorder: ObservableObject {
                     // Combine pre + post
                     let combined = self.preSnapshot + self.postBuffers
                     self.saveGunshotClip(buffers: combined)
-                    
                     // Reset
                     self.isTriggered = false
                     self.preSnapshot = []
