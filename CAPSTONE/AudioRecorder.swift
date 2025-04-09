@@ -5,6 +5,10 @@ import AudioKitEX
 import SoundpipeAudioKit
 import SoundAnalysis
 
+import CoreML
+
+
+
 class AudioRecorder: ObservableObject {
     var engine = AudioEngine()
     var mic: AudioEngine.InputNode
@@ -27,7 +31,6 @@ class AudioRecorder: ObservableObject {
     let bufferSize = 2048
     let preTriggerDuration: Double = 5.0
     let postTriggerDuration: Double = 5.0
-    let triggerThreshold: Float = 0.4 // amplitude threshold
     
     @Published var isRecording = false
     @Published var amplitude: Float = 0.0
@@ -38,23 +41,48 @@ class AudioRecorder: ObservableObject {
         amplitude <= 0 ? -100.0 : 20 * log10(amplitude)
     }
     
+    var soundClassifier: MLModel?
+    var analysisQueue = DispatchQueue(label: "SoundAnalysisQueue")
+    var request: SNClassifySoundRequest?
+    var analyzer: SNAudioStreamAnalyzer!
+    var resultsObserver = SoundResultsObserver()
+    
+    // Create a stream format matching mic input
+    lazy var streamFormat: AVAudioFormat = {
+        return detectionMixer.avAudioNode.outputFormat(forBus: 0)
+    }()
+    
     init() {
         mic = engine.input!
-        
-        // 1) Mixer for PitchTap
         mixer = Mixer(mic)
         mixer.volume = 1.0
-        
-        // 2) Second mixer for detection tap
         detectionMixer = Mixer(mixer)
         detectionMixer.volume = 1.0
-        
-        // Engine output is the detectionMixer
         engine.output = detectionMixer
         
         requestMicrophonePermission()
         setupAudioKit()
+
+        // ✅ Safe model load
+        do {
+            guard let modelURL = Bundle.main.url(forResource: "GunshotClassifier", withExtension: "mlmodelc") else {
+                print("❌ GunshotClassifier.mlmodelc not found in bundle.")
+                return
+            }
+
+            let model = try MLModel(contentsOf: modelURL)
+            soundClassifier = model
+
+            request = try SNClassifySoundRequest(mlModel: model)
+            analyzer = SNAudioStreamAnalyzer(format: streamFormat)
+            try analyzer.add(request!, withObserver: resultsObserver)
+
+            print("✅ GunshotClassifier model loaded.")
+        } catch {
+            print("❌ Failed to load or configure model: \(error)")
+        }
     }
+
     
     func requestMicrophonePermission() {
         AVAudioApplication.requestRecordPermission { granted in
@@ -95,8 +123,10 @@ class AudioRecorder: ObservableObject {
                 bufferSize: AVAudioFrameCount(bufferSize),
                 format: nil
             ) { buffer, time in
+                self.analyzeAudio(buffer)
                 self.storeAudioBuffer(buffer)
             }
+
         } catch {
             print("❌ Failed to start AudioKit: \(error.localizedDescription)")
         }
@@ -117,8 +147,9 @@ class AudioRecorder: ObservableObject {
             }
             
             // 3) If not triggered yet, check amplitude for event
-            if !self.isTriggered, self.amplitude > self.triggerThreshold {
-                print("Gunshot detected! Amp: \(self.amplitude) > \(self.triggerThreshold)")
+            if !self.isTriggered,
+               self.resultsObserver.didDetectGunshotRecently {
+
                 
                 // a) Snapshot the rolling buffer as "pre"
                 self.preSnapshot = self.rollingBuffer
@@ -204,10 +235,15 @@ class AudioRecorder: ObservableObject {
     func stopRecording() {
         detectionMixer.avAudioNode.removeTap(onBus: 0)
         tracker.stop()
+        
         engine.stop()
+        engine.avEngine.reset()
+
+        
         isRecording = false
         print("⏹️ AudioKit recording stopped.")
     }
+
     
     func toggleRecording() {
         if isRecording {
@@ -216,4 +252,30 @@ class AudioRecorder: ObservableObject {
             startRecording()
         }
     }
+    
+    func analyzeAudio(_ buffer: AVAudioPCMBuffer) {
+        analysisQueue.async {
+            self.analyzer.analyze(buffer, atAudioFramePosition: AVAudioFramePosition(0))
+        }
+    }
+
+}
+
+class SoundResultsObserver: NSObject, SNResultsObserving {
+    var didDetectGunshotRecently = false
+
+    func request(_ request: SNRequest, didProduce result: SNResult) {
+        guard let classificationResult = result as? SNClassificationResult else { return }
+
+        if let topResult = classificationResult.classifications.first, topResult.identifier == "gunshot", topResult.confidence > 0.8 {
+            didDetectGunshotRecently = true
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                self.didDetectGunshotRecently = false
+            }
+
+            print("🔫 Gunshot detected with Core ML! Confidence: \(topResult.confidence)")
+        }
+    }
+    
 }

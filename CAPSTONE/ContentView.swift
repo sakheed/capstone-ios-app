@@ -112,6 +112,9 @@ struct LandingPage: View {
     }
 }
 
+class DetectionDataStore: ObservableObject {
+    @Published var records: [DetectionScreen.DetectionRecord] = []
+}
 
 
 struct DetectionScreen: View {
@@ -130,7 +133,10 @@ struct DetectionScreen: View {
         let gyroZ: Double
     }
     
+
     @State public var detectionRecords: [DetectionRecord] = []
+    @EnvironmentObject var detectionStore: DetectionDataStore
+
 
 
     @StateObject private var audioRecorder = AudioRecorder()
@@ -295,7 +301,7 @@ struct DetectionScreen: View {
                     gyroY: gyroscopeManager.rotationRate?.y ?? 0.0,
                     gyroZ: gyroscopeManager.rotationRate?.z ?? 0.0
                 )
-                detectionRecords.append(record)
+                detectionStore.records.append(record)
                 print("Detection record saved: \(record)")
             }
         }
@@ -387,7 +393,7 @@ struct DetectionScreen: View {
         var csvText = "Timestamp,GPS_Latitude,GPS_Longitude,Pressure,Orientation_Pitch,Orientation_Roll,Orientation_Yaw,Gyro_X,Gyro_Y,Gyro_Z\n"
         
         // Build CSV rows from each detection record.
-        for record in detectionRecords {
+        for record in detectionStore.records {
             let newLine = "\(record.timestamp),\(record.gpsLatitude),\(record.gpsLongitude),\(record.pressure),\(record.orientationPitch),\(record.orientationRoll),\(record.orientationYaw),\(record.gyroX),\(record.gyroY),\(record.gyroZ)\n"
             csvText.append(newLine)
         }
