@@ -19,6 +19,7 @@ python-proto:
 	python3 -m grpc_tools.protoc -I$(PROTO_DIR) --python_out=$(PY_OUT_DIR) --grpc_python_out=$(PY_OUT_DIR) $(PROTO_DIR)/$(PROTO_FILE)
 	
 start-server:
+	@source $(PROTO_REPO)/venv/bin/activate && \
 	PYTHONPATH=$(PROTO_REPO) python3 -m server.server
 	
 kill-server:
