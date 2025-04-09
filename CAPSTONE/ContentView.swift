@@ -133,8 +133,9 @@ struct DetectionScreen: View {
         let gyroZ: Double
     }
     
-    @EnvironmentObject var detectionStore: DetectionDataStore
 
+    @State public var detectionRecords: [DetectionRecord] = []
+    @EnvironmentObject var detectionStore: DetectionDataStore
 
 
 
@@ -315,7 +316,6 @@ struct DetectionScreen: View {
             Button(action: { exportCSV() }) {
                 Label("Export Detections (CSV)", systemImage: "square.and.arrow.down")
             }
-
             Divider()
             Button(role: .destructive, action: deleteData) {
                 Label("Delete Data", systemImage: "trash")
@@ -413,7 +413,46 @@ struct DetectionScreen: View {
             }
         }
     }
+    
+    
+    func sendServer(record: DetectionRecord) {
+        let client = GRPCClient()
+        
+        var locationMessage = Signalq_Location()
+        locationMessage.latitude = record.gpsLatitude
+        locationMessage.longitude = record.gpsLongitude
+        
+        var orientationMessage = Signalq_Orientation()
+        orientationMessage.pitch = record.orientationPitch
+        orientationMessage.roll = record.orientationRoll
+        orientationMessage.yaw = record.orientationYaw
+        
+        var gyroscopeMessage = Signalq_Gyroscope()
+        gyroscopeMessage.x = record.gyroX
+        gyroscopeMessage.y = record.gyroY
+        gyroscopeMessage.z = record.gyroZ
+        
+        var sensorData = Signalq_SensorData()
+        sensorData.location = locationMessage
+        sensorData.pressure = record.pressure
+        sensorData.orientation = orientationMessage
+        sensorData.gyroscope = gyroscopeMessage
 
+        // Create a request message (Replace fields as needed)
+        var detectionRequest = Signalq_Detection()
+        detectionRequest.id = record.id.uuidString
+        detectionRequest.timeUtcMilliseconds = Int64(record.timestamp.timeIntervalSince1970 * 1000)
+        detectionRequest.sensors = sensorData
+        
+
+        Task {
+            do {
+                try await client.runClient(detectionRequest: detectionRequest)
+            } catch {
+                print("Error running client: \(error)")
+            }
+        }
+    }
 
 
 }
