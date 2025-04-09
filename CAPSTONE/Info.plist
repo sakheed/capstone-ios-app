@@ -2,11 +2,16 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSCameraReactionEffectGesturesEnabledDefault</key>
-	<true/>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>location</string>
-	</array>
+    <key>NSCameraReactionEffectGesturesEnabledDefault</key>
+    <true/>
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>location</string>
+    </array>
+    <!-- Add HealthKit usage descriptions -->
+    <key>NSHealthShareUsageDescription</key>
+    <string>This app requires access to your health data to monitor your heart rate and provide personalized insights.</string>
+    <key>NSHealthUpdateUsageDescription</key>
+    <string>This app uses health data to update workout records and track heart rate data for enhanced performance analysis.</string>
 </dict>
 </plist>

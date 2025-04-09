@@ -141,6 +141,7 @@ struct DetectionScreen: View {
 
     @StateObject private var audioRecorder = AudioRecorder()
     @StateObject private var locationManager = LocationManager()
+    @StateObject private var heartRateManager = HeartRateManager()
     
     // Built-in sensor managers:
     @StateObject private var orientationManager = OrientationManager()
@@ -225,6 +226,12 @@ struct DetectionScreen: View {
                             .foregroundColor(.gray)
                     }
                     
+                    // Heart Rate Output
+                    if let heartRate = heartRateManager.heartRate {
+                        Text("Heart Rate: \(String(format: "%.0f", heartRate)) BPM")
+                            .foregroundColor(.white)
+                    }
+                    
                     // Pressure Data using the built-in altimeter
                     if let pressure = pressureManager.pressure {
                         Text("Pressure: \(String(format: "%.2f", pressure)) hPa")
@@ -282,9 +289,7 @@ struct DetectionScreen: View {
             ActivityView(activityItems: [item.url])
         }
         .onAppear {
-            locationManager.startUpdating()
-        }
-        .onAppear {
+            heartRateManager.requestAuthorization()
             locationManager.startUpdating()
             
             NotificationCenter.default.addObserver(forName: Notification.Name("DetectionOccurred"), object: nil, queue: .main) { notification in
