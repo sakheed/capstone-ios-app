@@ -513,3 +513,4 @@ struct ContentView: View {
 #Preview {
     DetectionScreen()
 }
+

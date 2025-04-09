@@ -26,6 +26,8 @@
 		84D4A3D12D8B6DD600110E45 /* GRPCNIOTransportHTTP2 in Frameworks */ = {isa = PBXBuildFile; productRef = 84D4A3D02D8B6DD600110E45 /* GRPCNIOTransportHTTP2 */; };
 		84D4A3D32D8B6DD600110E45 /* GRPCNIOTransportHTTP2Posix in Frameworks */ = {isa = PBXBuildFile; productRef = 84D4A3D22D8B6DD600110E45 /* GRPCNIOTransportHTTP2Posix */; };
 		84D4A3D52D8B6DD600110E45 /* GRPCNIOTransportHTTP2TransportServices in Frameworks */ = {isa = PBXBuildFile; productRef = 84D4A3D42D8B6DD600110E45 /* GRPCNIOTransportHTTP2TransportServices */; };
+		D25995B52DA71FA2008A8975 /* RealmSwift in Frameworks */ = {isa = PBXBuildFile; productRef = D25995B42DA71FA2008A8975 /* RealmSwift */; };
+		D25995B62DA71FA2008A8975 /* RealmSwift in Embed Frameworks */ = {isa = PBXBuildFile; productRef = D25995B42DA71FA2008A8975 /* RealmSwift */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,6 +46,20 @@
 			remoteInfo = CAPSTONE;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		D25995B72DA71FA2008A8975 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				D25995B62DA71FA2008A8975 /* RealmSwift in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		234121312D5BB99B00165412 /* CAPSTONE.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CAPSTONE.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -95,6 +111,7 @@
 				84D4A3D52D8B6DD600110E45 /* GRPCNIOTransportHTTP2TransportServices in Frameworks */,
 				84D4A3CB2D8B6A1100110E45 /* NIOHTTP1 in Frameworks */,
 				07ADA5342D6520D200083DF7 /* SoundpipeAudioKit in Frameworks */,
+				D25995B52DA71FA2008A8975 /* RealmSwift in Frameworks */,
 				84D4A3C92D8B6A1100110E45 /* NIOFoundationCompat in Frameworks */,
 				84D4A3C32D8B6A1100110E45 /* NIOConcurrencyHelpers in Frameworks */,
 				842E19502D8B06FE00DF0789 /* SwiftProtobufPluginLibrary in Frameworks */,
@@ -164,6 +181,7 @@
 				2341212D2D5BB99B00165412 /* Sources */,
 				2341212E2D5BB99B00165412 /* Frameworks */,
 				2341212F2D5BB99B00165412 /* Resources */,
+				D25995B72DA71FA2008A8975 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -193,6 +211,7 @@
 				84D4A3D02D8B6DD600110E45 /* GRPCNIOTransportHTTP2 */,
 				84D4A3D22D8B6DD600110E45 /* GRPCNIOTransportHTTP2Posix */,
 				84D4A3D42D8B6DD600110E45 /* GRPCNIOTransportHTTP2TransportServices */,
+				D25995B42DA71FA2008A8975 /* RealmSwift */,
 			);
 			productName = CAPSTONE;
 			productReference = 234121312D5BB99B00165412 /* CAPSTONE.app */;
@@ -285,6 +304,7 @@
 				842E194C2D8B06FE00DF0789 /* XCRemoteSwiftPackageReference "swift-protobuf" */,
 				84D4A3BF2D8B6A1100110E45 /* XCRemoteSwiftPackageReference "swift-nio" */,
 				84D4A3CF2D8B6DD600110E45 /* XCRemoteSwiftPackageReference "grpc-swift-nio-transport" */,
+				D25995B32DA71F8C008A8975 /* XCRemoteSwiftPackageReference "realm-swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 234121322D5BB99B00165412 /* Products */;
@@ -729,6 +749,14 @@
 				minimumVersion = 1.0.2;
 			};
 		};
+		D25995B32DA71F8C008A8975 /* XCRemoteSwiftPackageReference "realm-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/realm/realm-swift.git";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -826,6 +854,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 84D4A3CF2D8B6DD600110E45 /* XCRemoteSwiftPackageReference "grpc-swift-nio-transport" */;
 			productName = GRPCNIOTransportHTTP2TransportServices;
+		};
+		D25995B42DA71FA2008A8975 /* RealmSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D25995B32DA71F8C008A8975 /* XCRemoteSwiftPackageReference "realm-swift" */;
+			productName = RealmSwift;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
