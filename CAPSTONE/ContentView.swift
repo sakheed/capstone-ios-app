@@ -477,52 +477,39 @@ struct DetectionScreen: View {
 
 
 struct ContentView: View {
+    @State private var currentScreen: Screen = .splashScreen
+    
+    enum Screen {
+        case splashScreen
+        case landingPage
+        case detectionScreen
+    }
+    
     var body: some View {
         NavigationView {
             VStack {
-                NavigationLink(destination: SplashScreen()) {
-                    Text("Go to Splash Screen")
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(10)
-                        .foregroundColor(.white)
-                }
-                
-                NavigationLink(destination: LandingPage()) {
-                    Text("Go to Landing Page")
-                        .padding()
-                        .background(Color.green)
-                        .cornerRadius(10)
-                        .foregroundColor(.white)
-                }
-                
-                NavigationLink(destination: DetectionScreen()) {
-                    Text("Go to Detection Screen")
-                        .padding()
-                        .background(Color.red)
-                        .cornerRadius(10)
-                        .foregroundColor(.white)
+                // Show SplashScreen initially
+                if currentScreen == .splashScreen {
+                    SplashScreen()
+                        .onAppear {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                currentScreen = .landingPage
+                            }
+                        }
+                    
+                } else if currentScreen == .landingPage {
+                    LandingPage()
                 }
             }
-            .padding()
+            .edgesIgnoringSafeArea(.all)
         }
     }
 }
 
 
-#Preview {
-    ContentView()
-}
 
-
-#Preview {
-    SplashScreen()
-}
-
-#Preview {
-    LandingPage()
-}
-
-#Preview {
-    DetectionScreen()
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
+    }
 }
