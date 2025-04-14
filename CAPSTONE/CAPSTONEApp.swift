@@ -13,7 +13,7 @@ struct CAPSTONEApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-            .environmentObject(detectionStore) 
+            .environmentObject(detectionStore)
         }
     }
 }
