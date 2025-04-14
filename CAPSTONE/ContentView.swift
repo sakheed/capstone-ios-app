@@ -8,6 +8,7 @@
 import SwiftUI
 import UIKit
 import ZIPFoundation
+import RealmSwift
 
 struct ExportItem: Identifiable {
     let id = UUID()
@@ -125,6 +126,22 @@ struct LandingPage: View {
     }
 }
 
+//Realm Database version of DetectionRecord
+class DetectionRecordRealm: Object {
+    @Persisted(primaryKey: true) var id: String
+    @Persisted var timestamp: Date
+    @Persisted var gpsLatitude: Double
+    @Persisted var gpsLongitude: Double
+    @Persisted var pressure: Double
+    @Persisted var orientationPitch: Double
+    @Persisted var orientationRoll: Double
+    @Persisted var orientationYaw: Double
+    @Persisted var gyroX: Double
+    @Persisted var gyroY: Double
+    @Persisted var gyroZ: Double
+    @Persisted var audioFilePath: String
+}
+
 class DetectionDataStore: ObservableObject {
     @Published var records: [DetectionScreen.DetectionRecord] = []
 }
@@ -144,13 +161,12 @@ struct DetectionScreen: View {
         let gyroX: Double
         let gyroY: Double
         let gyroZ: Double
+        let audioFilePath: String
     }
     
     
     @State public var detectionRecords: [DetectionRecord] = []
     @EnvironmentObject var detectionStore: DetectionDataStore
-    
-    
     
     @StateObject private var audioRecorder = AudioRecorder()
     @StateObject private var locationManager = LocationManager()
@@ -317,10 +333,15 @@ struct DetectionScreen: View {
                     orientationYaw: orientationManager.attitude?.yaw ?? 0.0,
                     gyroX: gyroscopeManager.rotationRate?.x ?? 0.0,
                     gyroY: gyroscopeManager.rotationRate?.y ?? 0.0,
-                    gyroZ: gyroscopeManager.rotationRate?.z ?? 0.0
+                    gyroZ: gyroscopeManager.rotationRate?.z ?? 0.0,
+                    audioFilePath: audioRecorder.audioFilePath
                 )
                 detectionStore.records.append(record)
                 print("Detection record saved: \(record)")
+                
+                // Save the record to Realm immediately
+                saveToRealm(record: record)
+                print("Detection record saved to Realm: \(record)")
             }
         }
         
@@ -333,6 +354,11 @@ struct DetectionScreen: View {
             }
             Button(action: { exportCSV() }) {
                 Label("Export Detections (CSV)", systemImage: "square.and.arrow.down")
+            }
+            Button(action: {
+                uploadDetectionRecords()
+            }) {
+                Text("Upload Detection Data")
             }
             Divider()
             Button(role: .destructive, action: deleteData) {
@@ -432,7 +458,56 @@ struct DetectionScreen: View {
         }
     }
     
+    //Function to save to Realm Database
+    func saveToRealm(record: DetectionRecord) {
+        let realm = try! Realm()
+        let realmRecord = DetectionRecordRealm()
+        
+        realmRecord.id = record.id.uuidString
+        realmRecord.timestamp = record.timestamp
+        realmRecord.gpsLatitude = record.gpsLatitude
+        realmRecord.gpsLongitude = record.gpsLongitude
+        realmRecord.pressure = record.pressure
+        realmRecord.orientationPitch = record.orientationPitch
+        realmRecord.orientationRoll = record.orientationRoll
+        realmRecord.orientationYaw = record.orientationYaw
+        realmRecord.gyroX = record.gyroX
+        realmRecord.gyroY = record.gyroY
+        realmRecord.gyroZ = record.gyroZ
+        realmRecord.audioFilePath = record.audioFilePath
+        
+        // Save to Realm
+        try! realm.write {
+            realm.add(realmRecord)
+        }
+        print("Record saved to Realm: \(realmRecord)")
+    }
     
+    func uploadDetectionRecords() {
+        let realm = try! Realm()
+        let detectionRecords = realm.objects(DetectionRecordRealm.self)
+        
+        // Iterate over the records and upload them to the server
+        for record in detectionRecords {
+            // Create a record in the format expected by your server
+            let detectionRecord = DetectionRecord(
+                timestamp: record.timestamp,
+                gpsLatitude: record.gpsLatitude,
+                gpsLongitude: record.gpsLongitude,
+                pressure: record.pressure,
+                orientationPitch: record.orientationPitch,
+                orientationRoll: record.orientationRoll,
+                orientationYaw: record.orientationYaw,
+                gyroX: record.gyroX,
+                gyroY: record.gyroY,
+                gyroZ: record.gyroZ,
+                audioFilePath: record.audioFilePath
+            )
+            
+            sendServer(record: detectionRecord)
+        }
+    }
+
     func sendServer(record: DetectionRecord) {
         let client = GRPCClient()
         
@@ -456,12 +531,10 @@ struct DetectionScreen: View {
         sensorData.orientation = orientationMessage
         sensorData.gyroscope = gyroscopeMessage
         
-        // Create a request message (Replace fields as needed)
         var detectionRequest = Signalq_Detection()
         detectionRequest.id = record.id.uuidString
         detectionRequest.timeUtcMilliseconds = Int64(record.timestamp.timeIntervalSince1970 * 1000)
         detectionRequest.sensors = sensorData
-        
         
         Task {
             do {
@@ -472,6 +545,15 @@ struct DetectionScreen: View {
         }
     }
     
+    func removeUploadedRecords() {
+        let realm = try! Realm()
+        let detectionRecords = realm.objects(DetectionRecordRealm.self)
+        
+        try! realm.write {
+            realm.delete(detectionRecords)
+        }
+        print("All uploaded records deleted from Realm.")
+    }
     
 }
 
