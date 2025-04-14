@@ -19,7 +19,7 @@ struct ActivityView: UIViewControllerRepresentable {
     let applicationActivities: [UIActivity]? = nil
     
     func makeUIViewController(context: Context) -> UIActivityViewController {
-         return UIActivityViewController(activityItems: activityItems, applicationActivities: applicationActivities)
+        return UIActivityViewController(activityItems: activityItems, applicationActivities: applicationActivities)
     }
     
     func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) { }
@@ -41,6 +41,7 @@ struct SplashScreen: View {
 
 struct LandingPage: View {
     @State private var isShowingScanner = false
+    @State private var navigateToDetectionScreen = false
     @State private var scannedURL: String? // Store the scanned URL
     
     var body: some View {
@@ -53,7 +54,7 @@ struct LandingPage: View {
                     .scaledToFit()
                     .frame(width: 150, height: 150)
                     .foregroundColor(.blue)
-
+                
                 Text("Welcome to SignalQ!")
                     .font(.title2)
                     .foregroundColor(.white)
@@ -66,12 +67,12 @@ struct LandingPage: View {
                 //Description of app
                 Text("SignalQ is a software-only signal intelligence platform that provides a low-cost, simple to incorporate, military-grade event detection capability that can leverage freely-associated mobile phones as sensors.")
                     .font(.subheadline)
-                        .foregroundColor(.gray)
-                        .multilineTextAlignment(.center)
-                        .padding()
+                    .foregroundColor(.gray)
+                    .multilineTextAlignment(.center)
+                    .padding()
                 
-
-
+                
+                
                 // QR Code Scanner Button
                 Button(action: {
                     isShowingScanner = true
@@ -79,29 +80,41 @@ struct LandingPage: View {
                     Text("Register with QR Code")
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.gray)
-                        .cornerRadius(10)
+                        .background(Color.clear)
+                        .cornerRadius(50)
                         .foregroundColor(.white)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 50)
+                                .stroke(Color.white, lineWidth: 2)
+                        )
                 }
-                .frame(width: 200)
+                .frame(width: 300)
                 .sheet(isPresented: $isShowingScanner) {
                     QRScannerView(isPresented: $isShowingScanner, scannedURL: $scannedURL)
                 }
-
                 // Activation Button
                 Button(action: {
-                    
+                    navigateToDetectionScreen = true
                 }) {
                     Text("Activate")
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.blue)
-                        .cornerRadius(10)
-                        .foregroundColor(.white)
+                        .background(Color(red: 0x4E / 255, green: 0xAB / 255, blue: 0xE2 / 255))
+                        .cornerRadius(50)
+                        .foregroundColor(Color(red: 0x25 / 255, green: 0x29 / 255, blue: 0x32 / 255))
                 }
-                .frame(width: 200)
+                .frame(width: 300)
+                .background(
+                    NavigationLink(
+                        destination: DetectionScreen(),
+                        isActive: $navigateToDetectionScreen,
+                        label: { EmptyView() }
+                    )
+                    .hidden()
+                )
             }
         }
+        
         .onChange(of: scannedURL) { newURL, _ in
             if let urlString = newURL, let url = URL(string: urlString), UIApplication.shared.canOpenURL(url) {
                 UIApplication.shared.open(url)
@@ -133,12 +146,12 @@ struct DetectionScreen: View {
         let gyroZ: Double
     }
     
-
+    
     @State public var detectionRecords: [DetectionRecord] = []
     @EnvironmentObject var detectionStore: DetectionDataStore
-
-
-
+    
+    
+    
     @StateObject private var audioRecorder = AudioRecorder()
     @StateObject private var locationManager = LocationManager()
     @StateObject private var heartRateManager = HeartRateManager()
@@ -310,7 +323,7 @@ struct DetectionScreen: View {
                 print("Detection record saved: \(record)")
             }
         }
-
+        
     }
     
     var menuButton: some View {
@@ -442,14 +455,14 @@ struct DetectionScreen: View {
         sensorData.pressure = record.pressure
         sensorData.orientation = orientationMessage
         sensorData.gyroscope = gyroscopeMessage
-
+        
         // Create a request message (Replace fields as needed)
         var detectionRequest = Signalq_Detection()
         detectionRequest.id = record.id.uuidString
         detectionRequest.timeUtcMilliseconds = Int64(record.timestamp.timeIntervalSince1970 * 1000)
         detectionRequest.sensors = sensorData
         
-
+        
         Task {
             do {
                 try await client.runClient(detectionRequest: detectionRequest)
@@ -458,58 +471,45 @@ struct DetectionScreen: View {
             }
         }
     }
-
-
+    
+    
 }
 
 
 struct ContentView: View {
+    @State private var currentScreen: Screen = .splashScreen
+    
+    enum Screen {
+        case splashScreen
+        case landingPage
+        case detectionScreen
+    }
+    
     var body: some View {
         NavigationView {
             VStack {
-                NavigationLink(destination: SplashScreen()) {
-                    Text("Go to Splash Screen")
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(10)
-                        .foregroundColor(.white)
-                }
-                
-                NavigationLink(destination: LandingPage()) {
-                    Text("Go to Landing Page")
-                        .padding()
-                        .background(Color.green)
-                        .cornerRadius(10)
-                        .foregroundColor(.white)
-                }
-                
-                NavigationLink(destination: DetectionScreen()) {
-                    Text("Go to Detection Screen")
-                        .padding()
-                        .background(Color.red)
-                        .cornerRadius(10)
-                        .foregroundColor(.white)
+                // Show SplashScreen initially
+                if currentScreen == .splashScreen {
+                    SplashScreen()
+                        .onAppear {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                currentScreen = .landingPage
+                            }
+                        }
+                    
+                } else if currentScreen == .landingPage {
+                    LandingPage()
                 }
             }
-            .padding()
+            .edgesIgnoringSafeArea(.all)
         }
     }
 }
 
 
-#Preview {
-    ContentView()
-}
 
-
-#Preview {
-    SplashScreen()
-}
-
-#Preview {
-    LandingPage()
-}
-
-#Preview {
-    DetectionScreen()
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
+    }
 }

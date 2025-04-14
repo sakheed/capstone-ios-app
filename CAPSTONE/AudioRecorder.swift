@@ -35,6 +35,7 @@ class AudioRecorder: ObservableObject {
     @Published var isRecording = false
     @Published var amplitude: Float = 0.0
     @Published var frequency: Float = 0.0
+    @Published var audioFilePath: String = ""
     
     // Convert raw amplitude to dB for UI
     var amplitudeDB: Float {
@@ -220,6 +221,7 @@ class AudioRecorder: ObservableObject {
                 try audioFile.write(from: buf)
             }
             print("Pre+Post clip saved at \(fileURL.path)")
+            self.audioFilePath = fileURL.path
             
             // Post a notification so that the sensor snapshot can be captured.
             DispatchQueue.main.async {
