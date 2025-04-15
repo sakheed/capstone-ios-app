@@ -21,7 +21,7 @@ internal enum Signalq_DetectionService {
         /// Namespace for "SendDetection" metadata.
         internal enum SendDetection {
             /// Request type for "SendDetection".
-            internal typealias Input = Signalq_Detection
+            internal typealias Input = Signalq_Detections
             /// Response type for "SendDetection".
             internal typealias Output = Signalq_Acknowledgement
             /// Descriptor for "SendDetection".
@@ -59,14 +59,14 @@ extension Signalq_DetectionService {
         /// Handle the "SendDetection" method.
         ///
         /// - Parameters:
-        ///   - request: A streaming request of `Signalq_Detection` messages.
+        ///   - request: A streaming request of `Signalq_Detections` messages.
         ///   - context: Context providing information about the RPC.
         /// - Throws: Any error which occurred during the processing of the request. Thrown errors
         ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
         ///     to an internal error.
         /// - Returns: A streaming response of `Signalq_Acknowledgement` messages.
         func sendDetection(
-            request: GRPCCore.StreamingServerRequest<Signalq_Detection>,
+            request: GRPCCore.StreamingServerRequest<Signalq_Detections>,
             context: GRPCCore.ServerContext
         ) async throws -> GRPCCore.StreamingServerResponse<Signalq_Acknowledgement>
     }
@@ -82,14 +82,14 @@ extension Signalq_DetectionService {
         /// Handle the "SendDetection" method.
         ///
         /// - Parameters:
-        ///   - request: A request containing a single `Signalq_Detection` message.
+        ///   - request: A request containing a single `Signalq_Detections` message.
         ///   - context: Context providing information about the RPC.
         /// - Throws: Any error which occurred during the processing of the request. Thrown errors
         ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
         ///     to an internal error.
         /// - Returns: A response containing a single `Signalq_Acknowledgement` message.
         func sendDetection(
-            request: GRPCCore.ServerRequest<Signalq_Detection>,
+            request: GRPCCore.ServerRequest<Signalq_Detections>,
             context: GRPCCore.ServerContext
         ) async throws -> GRPCCore.ServerResponse<Signalq_Acknowledgement>
     }
@@ -103,14 +103,14 @@ extension Signalq_DetectionService {
         /// Handle the "SendDetection" method.
         ///
         /// - Parameters:
-        ///   - request: A `Signalq_Detection` message.
+        ///   - request: A `Signalq_Detections` message.
         ///   - context: Context providing information about the RPC.
         /// - Throws: Any error which occurred during the processing of the request. Thrown errors
         ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
         ///     to an internal error.
         /// - Returns: A `Signalq_Acknowledgement` to respond with.
         func sendDetection(
-            request: Signalq_Detection,
+            request: Signalq_Detections,
             context: GRPCCore.ServerContext
         ) async throws -> Signalq_Acknowledgement
     }
@@ -121,7 +121,7 @@ extension Signalq_DetectionService.StreamingServiceProtocol {
     internal func registerMethods<Transport>(with router: inout GRPCCore.RPCRouter<Transport>) where Transport: GRPCCore.ServerTransport {
         router.registerHandler(
             forMethod: Signalq_DetectionService.Method.SendDetection.descriptor,
-            deserializer: GRPCProtobuf.ProtobufDeserializer<Signalq_Detection>(),
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Signalq_Detections>(),
             serializer: GRPCProtobuf.ProtobufSerializer<Signalq_Acknowledgement>(),
             handler: { request, context in
                 try await self.sendDetection(
@@ -136,7 +136,7 @@ extension Signalq_DetectionService.StreamingServiceProtocol {
 // Default implementation of streaming methods from 'StreamingServiceProtocol'.
 extension Signalq_DetectionService.ServiceProtocol {
     internal func sendDetection(
-        request: GRPCCore.StreamingServerRequest<Signalq_Detection>,
+        request: GRPCCore.StreamingServerRequest<Signalq_Detections>,
         context: GRPCCore.ServerContext
     ) async throws -> GRPCCore.StreamingServerResponse<Signalq_Acknowledgement> {
         let response = try await self.sendDetection(
@@ -150,7 +150,7 @@ extension Signalq_DetectionService.ServiceProtocol {
 // Default implementation of methods from 'ServiceProtocol'.
 extension Signalq_DetectionService.SimpleServiceProtocol {
     internal func sendDetection(
-        request: GRPCCore.ServerRequest<Signalq_Detection>,
+        request: GRPCCore.ServerRequest<Signalq_Detections>,
         context: GRPCCore.ServerContext
     ) async throws -> GRPCCore.ServerResponse<Signalq_Acknowledgement> {
         return GRPCCore.ServerResponse<Signalq_Acknowledgement>(
@@ -174,8 +174,8 @@ extension Signalq_DetectionService {
         /// Call the "SendDetection" method.
         ///
         /// - Parameters:
-        ///   - request: A request containing a single `Signalq_Detection` message.
-        ///   - serializer: A serializer for `Signalq_Detection` messages.
+        ///   - request: A request containing a single `Signalq_Detections` message.
+        ///   - serializer: A serializer for `Signalq_Detections` messages.
         ///   - deserializer: A deserializer for `Signalq_Acknowledgement` messages.
         ///   - options: Options to apply to this RPC.
         ///   - handleResponse: A closure which handles the response, the result of which is
@@ -183,8 +183,8 @@ extension Signalq_DetectionService {
         ///       hasn't already finished.
         /// - Returns: The result of `handleResponse`.
         func sendDetection<Result>(
-            request: GRPCCore.ClientRequest<Signalq_Detection>,
-            serializer: some GRPCCore.MessageSerializer<Signalq_Detection>,
+            request: GRPCCore.ClientRequest<Signalq_Detections>,
+            serializer: some GRPCCore.MessageSerializer<Signalq_Detections>,
             deserializer: some GRPCCore.MessageDeserializer<Signalq_Acknowledgement>,
             options: GRPCCore.CallOptions,
             onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Signalq_Acknowledgement>) async throws -> Result
@@ -210,8 +210,8 @@ extension Signalq_DetectionService {
         /// Call the "SendDetection" method.
         ///
         /// - Parameters:
-        ///   - request: A request containing a single `Signalq_Detection` message.
-        ///   - serializer: A serializer for `Signalq_Detection` messages.
+        ///   - request: A request containing a single `Signalq_Detections` message.
+        ///   - serializer: A serializer for `Signalq_Detections` messages.
         ///   - deserializer: A deserializer for `Signalq_Acknowledgement` messages.
         ///   - options: Options to apply to this RPC.
         ///   - handleResponse: A closure which handles the response, the result of which is
@@ -219,8 +219,8 @@ extension Signalq_DetectionService {
         ///       hasn't already finished.
         /// - Returns: The result of `handleResponse`.
         internal func sendDetection<Result>(
-            request: GRPCCore.ClientRequest<Signalq_Detection>,
-            serializer: some GRPCCore.MessageSerializer<Signalq_Detection>,
+            request: GRPCCore.ClientRequest<Signalq_Detections>,
+            serializer: some GRPCCore.MessageSerializer<Signalq_Detections>,
             deserializer: some GRPCCore.MessageDeserializer<Signalq_Acknowledgement>,
             options: GRPCCore.CallOptions = .defaults,
             onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Signalq_Acknowledgement>) async throws -> Result = { response in
@@ -244,14 +244,14 @@ extension Signalq_DetectionService.ClientProtocol {
     /// Call the "SendDetection" method.
     ///
     /// - Parameters:
-    ///   - request: A request containing a single `Signalq_Detection` message.
+    ///   - request: A request containing a single `Signalq_Detections` message.
     ///   - options: Options to apply to this RPC.
     ///   - handleResponse: A closure which handles the response, the result of which is
     ///       returned to the caller. Returning from the closure will cancel the RPC if it
     ///       hasn't already finished.
     /// - Returns: The result of `handleResponse`.
     internal func sendDetection<Result>(
-        request: GRPCCore.ClientRequest<Signalq_Detection>,
+        request: GRPCCore.ClientRequest<Signalq_Detections>,
         options: GRPCCore.CallOptions = .defaults,
         onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Signalq_Acknowledgement>) async throws -> Result = { response in
             try response.message
@@ -259,7 +259,7 @@ extension Signalq_DetectionService.ClientProtocol {
     ) async throws -> Result where Result: Sendable {
         try await self.sendDetection(
             request: request,
-            serializer: GRPCProtobuf.ProtobufSerializer<Signalq_Detection>(),
+            serializer: GRPCProtobuf.ProtobufSerializer<Signalq_Detections>(),
             deserializer: GRPCProtobuf.ProtobufDeserializer<Signalq_Acknowledgement>(),
             options: options,
             onResponse: handleResponse
@@ -280,14 +280,14 @@ extension Signalq_DetectionService.ClientProtocol {
     ///       hasn't already finished.
     /// - Returns: The result of `handleResponse`.
     internal func sendDetection<Result>(
-        _ message: Signalq_Detection,
+        _ message: Signalq_Detections,
         metadata: GRPCCore.Metadata = [:],
         options: GRPCCore.CallOptions = .defaults,
         onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Signalq_Acknowledgement>) async throws -> Result = { response in
             try response.message
         }
     ) async throws -> Result where Result: Sendable {
-        let request = GRPCCore.ClientRequest<Signalq_Detection>(
+        let request = GRPCCore.ClientRequest<Signalq_Detections>(
             message: message,
             metadata: metadata
         )

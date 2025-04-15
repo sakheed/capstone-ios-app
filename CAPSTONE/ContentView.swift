@@ -531,14 +531,17 @@ struct DetectionScreen: View {
         sensorData.orientation = orientationMessage
         sensorData.gyroscope = gyroscopeMessage
         
-        var detectionRequest = Signalq_Detection()
+        var detectionRequest = Signalq_DetectionMessage()
         detectionRequest.id = record.id.uuidString
         detectionRequest.timeUtcMilliseconds = Int64(record.timestamp.timeIntervalSince1970 * 1000)
         detectionRequest.sensors = sensorData
         
+        var detections = Signalq_Detections()
+        detections.detections.append(detectionRequest)
+        
         Task {
             do {
-                try await client.runClient(detectionRequest: detectionRequest)
+                try await client.runClient(detections: detections)
             } catch {
                 print("Error running client: \(error)")
             }
