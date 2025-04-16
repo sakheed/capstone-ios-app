@@ -330,7 +330,6 @@ struct DetectionScreen: View {
             locationManager.startUpdating()
             
             NotificationCenter.default.addObserver(forName: Notification.Name("DetectionOccurred"), object: nil, queue: .main) { notification in
-                // Capture the sensor data snapshot at the time of detection.
                 let record = DetectionRecord(
                     timestamp: notification.userInfo?["timestamp"] as? Date ?? Date(),
                     gpsLatitude: locationManager.currentLocation?.coordinate.latitude ?? 0.0,
@@ -354,6 +353,7 @@ struct DetectionScreen: View {
                 // Save the record to Realm immediately
                 saveToRealm(record: record)
             }
+
         }
         
     }
@@ -445,12 +445,15 @@ struct DetectionScreen: View {
     }
     
     func exportCSV() {
-        // CSV header remains the same.
-        var csvText = "Timestamp,GPS_Latitude,GPS_Longitude,Pressure,Orientation_Pitch,Orientation_Roll,Orientation_Yaw,Gyro_X,Gyro_Y,Gyro_Z\n"
+        // Updated CSV header with units for each column.
+        var csvText = "Timestamp (UTC), GPS_Latitude (°), GPS_Longitude (°), Pressure (hPa), Orientation_Pitch (°), Orientation_Roll (°), Orientation_Yaw (°), Gyro_X (°/s), Gyro_Y (°/s), Gyro_Z (°/s), HeartRate (BPM)\n"
         
         // Build CSV rows from each detection record.
         for record in detectionStore.records {
-            let newLine = "\(record.timestamp),\(record.gpsLatitude),\(record.gpsLongitude),\(record.pressure),\(record.orientationPitch),\(record.orientationRoll),\(record.orientationYaw),\(record.gyroX),\(record.gyroY),\(record.gyroZ)\n"
+            let heartRateValue = record.heartRate ?? 0
+            // The timestamp here is printed using its default description.
+            // You might want to format the date if needed.
+            let newLine = "\(record.timestamp),\(record.gpsLatitude),\(record.gpsLongitude),\(record.pressure),\(record.orientationPitch),\(record.orientationRoll),\(record.orientationYaw),\(record.gyroX),\(record.gyroY),\(record.gyroZ),\(heartRateValue)\n"
             csvText.append(newLine)
         }
         
@@ -471,10 +474,10 @@ struct DetectionScreen: View {
     }
     
     //Function to save to Realm Database
-    func saveToRealm(record: DetectionRecord) {
+    func saveToRealm(record: DetectionScreen.DetectionRecord) {
         let realm = try! Realm()
         let realmRecord = DetectionRecordRealm()
-        
+
         realmRecord.id = record.id.uuidString
         realmRecord.timestamp_UTCTime = record.timestamp
         realmRecord.gpsLatitude_DEG = record.gpsLatitude
@@ -501,6 +504,7 @@ struct DetectionScreen: View {
 
 
     }
+
     
     func uploadDetectionRecords() {
         let realm = try! Realm()
@@ -554,14 +558,17 @@ struct DetectionScreen: View {
         sensorData.orientation = orientationMessage
         sensorData.gyroscope = gyroscopeMessage
         
-        var detectionRequest = Signalq_Detection()
+        var detectionRequest = Signalq_DetectionMessage()
         detectionRequest.id = record.id.uuidString
         detectionRequest.timeUtcMilliseconds = Int64(record.timestamp.timeIntervalSince1970 * 1000)
         detectionRequest.sensors = sensorData
         
+        var detections = Signalq_Detections()
+        detections.detections.append(detectionRequest)
+        
         Task {
             do {
-                try await client.runClient(detectionRequest: detectionRequest)
+                try await client.runClient(detections: detections)
             } catch {
                 print("Error running client: \(error)")
             }
