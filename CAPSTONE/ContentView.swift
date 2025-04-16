@@ -140,6 +140,7 @@ class DetectionRecordRealm: Object {
     @Persisted var gyroY: Double
     @Persisted var gyroZ: Double
     @Persisted var audioFilePath: String
+    @Persisted var heartRate: Double
 }
 
 class DetectionDataStore: ObservableObject {
@@ -162,6 +163,7 @@ struct DetectionScreen: View {
         let gyroY: Double
         let gyroZ: Double
         let audioFilePath: String
+        let heartRate: Double?
     }
     
     
@@ -322,7 +324,6 @@ struct DetectionScreen: View {
             locationManager.startUpdating()
             
             NotificationCenter.default.addObserver(forName: Notification.Name("DetectionOccurred"), object: nil, queue: .main) { notification in
-                // Capture the sensor data snapshot at the time of detection.
                 let record = DetectionRecord(
                     timestamp: notification.userInfo?["timestamp"] as? Date ?? Date(),
                     gpsLatitude: locationManager.currentLocation?.coordinate.latitude ?? 0.0,
@@ -334,7 +335,8 @@ struct DetectionScreen: View {
                     gyroX: gyroscopeManager.rotationRate?.x ?? 0.0,
                     gyroY: gyroscopeManager.rotationRate?.y ?? 0.0,
                     gyroZ: gyroscopeManager.rotationRate?.z ?? 0.0,
-                    audioFilePath: audioRecorder.audioFilePath
+                    audioFilePath: audioRecorder.audioFilePath,
+                    heartRate: heartRateManager.heartRate  // Capture the heart rate reading
                 )
                 detectionStore.records.append(record)
                 print("Detection record saved: \(record)")
@@ -343,6 +345,7 @@ struct DetectionScreen: View {
                 saveToRealm(record: record)
                 print("Detection record saved to Realm: \(record)")
             }
+
         }
         
     }
@@ -433,12 +436,15 @@ struct DetectionScreen: View {
     }
     
     func exportCSV() {
-        // CSV header remains the same.
-        var csvText = "Timestamp,GPS_Latitude,GPS_Longitude,Pressure,Orientation_Pitch,Orientation_Roll,Orientation_Yaw,Gyro_X,Gyro_Y,Gyro_Z\n"
+        // Updated CSV header with units for each column.
+        var csvText = "Timestamp (UTC), GPS_Latitude (°), GPS_Longitude (°), Pressure (hPa), Orientation_Pitch (°), Orientation_Roll (°), Orientation_Yaw (°), Gyro_X (°/s), Gyro_Y (°/s), Gyro_Z (°/s), HeartRate (BPM)\n"
         
         // Build CSV rows from each detection record.
         for record in detectionStore.records {
-            let newLine = "\(record.timestamp),\(record.gpsLatitude),\(record.gpsLongitude),\(record.pressure),\(record.orientationPitch),\(record.orientationRoll),\(record.orientationYaw),\(record.gyroX),\(record.gyroY),\(record.gyroZ)\n"
+            let heartRateValue = record.heartRate ?? 0
+            // The timestamp here is printed using its default description.
+            // You might want to format the date if needed.
+            let newLine = "\(record.timestamp),\(record.gpsLatitude),\(record.gpsLongitude),\(record.pressure),\(record.orientationPitch),\(record.orientationRoll),\(record.orientationYaw),\(record.gyroX),\(record.gyroY),\(record.gyroZ),\(heartRateValue)\n"
             csvText.append(newLine)
         }
         
@@ -459,10 +465,10 @@ struct DetectionScreen: View {
     }
     
     //Function to save to Realm Database
-    func saveToRealm(record: DetectionRecord) {
+    func saveToRealm(record: DetectionScreen.DetectionRecord) {
         let realm = try! Realm()
         let realmRecord = DetectionRecordRealm()
-        
+
         realmRecord.id = record.id.uuidString
         realmRecord.timestamp = record.timestamp
         realmRecord.gpsLatitude = record.gpsLatitude
@@ -475,13 +481,14 @@ struct DetectionScreen: View {
         realmRecord.gyroY = record.gyroY
         realmRecord.gyroZ = record.gyroZ
         realmRecord.audioFilePath = record.audioFilePath
-        
-        // Save to Realm
+        realmRecord.heartRate = record.heartRate ?? 0.0
+
         try! realm.write {
             realm.add(realmRecord)
         }
         print("Record saved to Realm: \(realmRecord)")
     }
+
     
     func uploadDetectionRecords() {
         let realm = try! Realm()
@@ -501,7 +508,8 @@ struct DetectionScreen: View {
                 gyroX: record.gyroX,
                 gyroY: record.gyroY,
                 gyroZ: record.gyroZ,
-                audioFilePath: record.audioFilePath
+                audioFilePath: record.audioFilePath,
+                heartRate: record.heartRate == 0.0 ? nil : record.heartRate
             )
             
             sendServer(record: detectionRecord)
