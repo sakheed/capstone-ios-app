@@ -225,7 +225,7 @@ class AudioRecorder: ObservableObject {
             
             // Post a notification so that the sensor snapshot can be captured.
             DispatchQueue.main.async {
-                NotificationCenter.default.post(name: Notification.Name("DetectionOccurred"), object: nil, userInfo: ["timestamp": Date()])
+                NotificationCenter.default.post(name: Notification.Name("DetectionOccurred"), object: nil, userInfo: ["timestamp": Date(), "result": self.resultsObserver.lastResult, "confidence": self.resultsObserver.lastConfidence])
             }
             
         } catch {
@@ -265,13 +265,17 @@ class AudioRecorder: ObservableObject {
 
 class SoundResultsObserver: NSObject, SNResultsObserving {
     var didDetectGunshotRecently = false
+    var lastResult: String = ""
+    var lastConfidence: Double = 0.0
 
     func request(_ request: SNRequest, didProduce result: SNResult) {
         guard let classificationResult = result as? SNClassificationResult else { return }
 
         if let topResult = classificationResult.classifications.first, topResult.identifier == "gunshot", topResult.confidence > 0.8 {
             didDetectGunshotRecently = true
-
+            self.lastResult = topResult.identifier
+            self.lastConfidence = topResult.confidence
+            
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                 self.didDetectGunshotRecently = false
             }
