@@ -100,6 +100,8 @@ struct Signalq_SensorData: Sendable {
   /// Clears the value of `gyroscope`. Subsequent reads from it will return its default value.
   mutating func clearGyroscope() {self._gyroscope = nil}
 
+  var heartrate: Double = 0
+
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
@@ -326,6 +328,7 @@ extension Signalq_SensorData: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     2: .same(proto: "pressure"),
     3: .same(proto: "orientation"),
     4: .same(proto: "gyroscope"),
+    5: .same(proto: "heartrate"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -338,6 +341,7 @@ extension Signalq_SensorData: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
       case 2: try { try decoder.decodeSingularDoubleField(value: &self.pressure) }()
       case 3: try { try decoder.decodeSingularMessageField(value: &self._orientation) }()
       case 4: try { try decoder.decodeSingularMessageField(value: &self._gyroscope) }()
+      case 5: try { try decoder.decodeSingularDoubleField(value: &self.heartrate) }()
       default: break
       }
     }
@@ -360,6 +364,9 @@ extension Signalq_SensorData: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     try { if let v = self._gyroscope {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
     } }()
+    if self.heartrate.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.heartrate, fieldNumber: 5)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -368,6 +375,7 @@ extension Signalq_SensorData: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     if lhs.pressure != rhs.pressure {return false}
     if lhs._orientation != rhs._orientation {return false}
     if lhs._gyroscope != rhs._gyroscope {return false}
+    if lhs.heartrate != rhs.heartrate {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

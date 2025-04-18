@@ -450,10 +450,9 @@ struct DetectionScreen: View {
         
         // Build CSV rows from each detection record.
         for record in detectionStore.records {
-            let heartRateValue = record.heartRate ?? 0
             // The timestamp here is printed using its default description.
             // You might want to format the date if needed.
-            let newLine = "\(record.timestamp),\(record.gpsLatitude),\(record.gpsLongitude),\(record.pressure),\(record.orientationPitch),\(record.orientationRoll),\(record.orientationYaw),\(record.gyroX),\(record.gyroY),\(record.gyroZ),\(heartRateValue)\n"
+            let newLine = "\(record.timestamp),\(record.gpsLatitude),\(record.gpsLongitude),\(record.pressure),\(record.orientationPitch),\(record.orientationRoll),\(record.orientationYaw),\(record.gyroX),\(record.gyroY),\(record.gyroZ),\(record.heartrate)\n"
             csvText.append(newLine)
         }
         
@@ -500,6 +499,16 @@ struct DetectionScreen: View {
         try! realm.write {
             realm.add(realmRecord)
         }
+        
+        if sendToServer(record: realmRecord) {
+            try! realm.write {
+                realmRecord.uploadStatus = "Complete"
+            }
+        } else {
+            try! realm.write {
+                realmRecord.uploadStatus = "Failed"
+            }
+        }
 
 
 
@@ -530,37 +539,36 @@ struct DetectionScreen: View {
                 confidence: record.confidence_PERCENT,
                 uploadStatus: record.uploadStatus
             )
-            
-            sendServer(record: detectionRecord)
         }
     }
 
-    func sendServer(record: DetectionRecord) {
+    func sendToServer(record: DetectionRecordRealm) -> Bool {
         let client = GRPCClient()
         
         var locationMessage = Signalq_Location()
-        locationMessage.latitude = record.gpsLatitude
-        locationMessage.longitude = record.gpsLongitude
+        locationMessage.latitude = record.gpsLatitude_DEG
+        locationMessage.longitude = record.gpsLongitude_DEG
         
         var orientationMessage = Signalq_Orientation()
-        orientationMessage.pitch = record.orientationPitch
-        orientationMessage.roll = record.orientationRoll
-        orientationMessage.yaw = record.orientationYaw
+        orientationMessage.pitch = record.orientationPitch_RAD
+        orientationMessage.roll = record.orientationRoll_RAD
+        orientationMessage.yaw = record.orientationYaw_RAD
         
         var gyroscopeMessage = Signalq_Gyroscope()
-        gyroscopeMessage.x = record.gyroX
-        gyroscopeMessage.y = record.gyroY
-        gyroscopeMessage.z = record.gyroZ
+        gyroscopeMessage.x = record.gyroX_RAD_SEC
+        gyroscopeMessage.y = record.gyroY_RAD_SEC
+        gyroscopeMessage.z = record.gyroZ_RAD_SEC
         
         var sensorData = Signalq_SensorData()
         sensorData.location = locationMessage
-        sensorData.pressure = record.pressure
+        sensorData.pressure = record.pressure_hPA
         sensorData.orientation = orientationMessage
         sensorData.gyroscope = gyroscopeMessage
+        sensorData.heartrate = record.heartrate_BPM
         
         var detectionRequest = Signalq_DetectionMessage()
-        detectionRequest.id = record.id.uuidString
-        detectionRequest.timeUtcMilliseconds = Int64(record.timestamp.timeIntervalSince1970 * 1000)
+        detectionRequest.id = record.id
+        detectionRequest.timeUtcMilliseconds = Int64(record.timestamp_UTCTime.timeIntervalSince1970 * 1000)
         detectionRequest.sensors = sensorData
         
         var detections = Signalq_Detections()
@@ -569,10 +577,13 @@ struct DetectionScreen: View {
         Task {
             do {
                 try await client.runClient(detections: detections)
+                return true
             } catch {
                 print("Error running client: \(error)")
+                return false
             }
         }
+        return false
     }
     
     func removeUploadedRecords() {
