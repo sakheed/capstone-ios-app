@@ -126,28 +126,34 @@ struct LandingPage: View {
     }
 }
 
-//Realm Database version of DetectionRecord
+// Realm Database version of DetectionRecord
 class DetectionRecordRealm: Object {
     @Persisted(primaryKey: true) var id: String
-    @Persisted var timestamp: Date
-    @Persisted var gpsLatitude: Double
-    @Persisted var gpsLongitude: Double
-    @Persisted var pressure: Double
-    @Persisted var orientationPitch: Double
-    @Persisted var orientationRoll: Double
-    @Persisted var orientationYaw: Double
-    @Persisted var gyroX: Double
-    @Persisted var gyroY: Double
-    @Persisted var gyroZ: Double
-    @Persisted var audioFilePath: String
-    @Persisted var heartRate: Double
-    @Persisted var altitude: Double
+    @Persisted var timestamp_UTCTime: Date // UTC time
+    @Persisted var gpsLatitude_DEG: Double // degrees (°)
+    @Persisted var gpsLongitude_DEG: Double // degrees (°)
+    @Persisted var pressure_hPA: Double // hectopascals (hPa)
+    @Persisted var orientationPitch_RAD: Double // radians (rad)
+    @Persisted var orientationRoll_RAD: Double // radians (rad)
+    @Persisted var orientationYaw_RAD: Double // radians (rad)
+    @Persisted var gyroX_RAD_SEC: Double // radians per second (rad/s)
+    @Persisted var gyroY_RAD_SEC: Double // radians per second (rad/s)
+    @Persisted var gyroZ_RAD_SEC: Double // radians per second (rad/s)
+    @Persisted var heartrate_BPM: Double // beats per minute (BPM)
+    @Persisted var altitude_M: Double // altitude(M)
+    @Persisted var audioFilePath: String // file path string
+    @Persisted var result: String
+    @Persisted var confidence_PERCENT: Double
+    @Persisted var uploadStatus: String
 }
 
 class DetectionDataStore: ObservableObject {
     @Published var records: [DetectionScreen.DetectionRecord] = []
 }
 
+class UploadRetryManager {
+
+}
 
 struct DetectionScreen: View {
     
@@ -163,9 +169,12 @@ struct DetectionScreen: View {
         let gyroX: Double
         let gyroY: Double
         let gyroZ: Double
-        let audioFilePath: String
-        let heartRate: Double?
+        let heartrate: Double
         let altitude: Double
+        let audioFilePath: String
+        let result: String
+        let confidence: Double
+        let uploadStatus: String
     }
     
     
@@ -182,6 +191,17 @@ struct DetectionScreen: View {
     @StateObject private var pressureManager = PressureManager()
     
     @State private var exportItem: ExportItem? = nil
+    
+    @State public var timer: Timer?
+    
+    func startRetryLoop() {
+        timer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) {[self] _ in self.retryFailedUploads()}
+    }
+    
+    func stopRetryLoop() {
+        timer?.invalidate()
+        timer = nil
+    }
     
     var body: some View {
         NavigationView {
@@ -333,16 +353,18 @@ struct DetectionScreen: View {
                     gyroX: gyroscopeManager.rotationRate?.x ?? 0.0,
                     gyroY: gyroscopeManager.rotationRate?.y ?? 0.0,
                     gyroZ: gyroscopeManager.rotationRate?.z ?? 0.0,
-                    audioFilePath: audioRecorder.audioFilePath,
-                    heartRate: heartRateManager.heartRate,
+                    heartrate: heartRateManager.heartRate ?? 0.0,
                     altitude: locationManager.currentLocation?.altitude ?? 0.0
+                    audioFilePath: audioRecorder.audioFilePath,
+                    result: notification.userInfo?["result"] as? String ?? "",
+                    confidence: notification.userInfo?["confidence"] as? Double ?? 0.0,
+                    uploadStatus: "Pending"
                 )
                 detectionStore.records.append(record)
                 print("Detection record saved: \(record)")
                 
                 // Save the record to Realm immediately
                 saveToRealm(record: record)
-                print("Detection record saved to Realm: \(record)")
             }
 
         }
@@ -427,6 +449,7 @@ struct DetectionScreen: View {
     }
     
     func deleteData() {
+        removeUploadedRecords()
         print("Deleting data...")
     }
     
@@ -440,10 +463,10 @@ struct DetectionScreen: View {
         
         // Build CSV rows from each detection record.
         for record in detectionStore.records {
-            let heartRateValue = record.heartRate ?? 0
             // The timestamp here is printed using its default description.
             // You might want to format the date if needed.
-            let newLine = "\(record.timestamp),\(record.gpsLatitude),\(record.gpsLongitude),\(record.pressure),\(record.orientationPitch),\(record.orientationRoll),\(record.orientationYaw),\(record.gyroX),\(record.gyroY),\(record.gyroZ),\(heartRateValue), \(record.altitude) \n"
+            let newLine = "\(record.timestamp),\(record.gpsLatitude),\(record.gpsLongitude),\(record.pressure),\(record.orientationPitch),\(record.orientationRoll),\(record.orientationYaw),\(record.gyroX),\(record.gyroY),\(record.gyroZ),\(record.heartrate), \(record.altitude) \n"
+
             csvText.append(newLine)
         }
         
@@ -469,24 +492,44 @@ struct DetectionScreen: View {
         let realmRecord = DetectionRecordRealm()
 
         realmRecord.id = record.id.uuidString
-        realmRecord.timestamp = record.timestamp
-        realmRecord.gpsLatitude = record.gpsLatitude
-        realmRecord.gpsLongitude = record.gpsLongitude
-        realmRecord.pressure = record.pressure
-        realmRecord.orientationPitch = record.orientationPitch
-        realmRecord.orientationRoll = record.orientationRoll
-        realmRecord.orientationYaw = record.orientationYaw
-        realmRecord.gyroX = record.gyroX
-        realmRecord.gyroY = record.gyroY
-        realmRecord.gyroZ = record.gyroZ
+        realmRecord.timestamp_UTCTime = record.timestamp
+        realmRecord.gpsLatitude_DEG = record.gpsLatitude
+        realmRecord.gpsLongitude_DEG = record.gpsLongitude
+        realmRecord.pressure_hPA = record.pressure
+        realmRecord.orientationPitch_RAD = record.orientationPitch
+        realmRecord.orientationRoll_RAD = record.orientationRoll
+        realmRecord.orientationYaw_RAD = record.orientationYaw
+        realmRecord.gyroX_RAD_SEC = record.gyroX
+        realmRecord.gyroY_RAD_SEC = record.gyroY
+        realmRecord.gyroZ_RAD_SEC = record.gyroZ
+        realmRecord.heartrate_BPM = record.heartrate
         realmRecord.audioFilePath = record.audioFilePath
         realmRecord.heartRate = record.heartRate ?? 0.0
         realmRecord.altitude = record.altitude
-
+        realmRecord.result = record.result
+        realmRecord.confidence_PERCENT = record.confidence * 100
+        realmRecord.uploadStatus = record.uploadStatus
+        
+        
+        // Save to Realm
         try! realm.write {
             realm.add(realmRecord)
         }
-        print("Record saved to Realm: \(realmRecord)")
+        
+        if sendToServer(records: [realmRecord]) {
+            try! realm.write {
+                realmRecord.uploadStatus = "Complete"
+            }
+            print("Writing Realm record staus as Complete")
+        } else {
+            try! realm.write {
+                realmRecord.uploadStatus = "Failed"
+            }
+            print("Writing Realm record status as Failed")
+            //startRetryLoop()
+            //print("Starting Retry Timer")
+        }
+
     }
 
     
@@ -498,63 +541,92 @@ struct DetectionScreen: View {
         for record in detectionRecords {
             // Create a record in the format expected by your server
             let detectionRecord = DetectionRecord(
-                timestamp: record.timestamp,
-                gpsLatitude: record.gpsLatitude,
-                gpsLongitude: record.gpsLongitude,
-                pressure: record.pressure,
-                orientationPitch: record.orientationPitch,
-                orientationRoll: record.orientationRoll,
-                orientationYaw: record.orientationYaw,
-                gyroX: record.gyroX,
-                gyroY: record.gyroY,
-                gyroZ: record.gyroZ,
+                timestamp: record.timestamp_UTCTime,
+                gpsLatitude: record.gpsLatitude_DEG,
+                gpsLongitude: record.gpsLongitude_DEG,
+                pressure: record.pressure_hPA,
+                orientationPitch: record.orientationPitch_RAD,
+                orientationRoll: record.orientationRoll_RAD,
+                orientationYaw: record.orientationYaw_RAD,
+                gyroX: record.gyroX_RAD_SEC,
+                gyroY: record.gyroY_RAD_SEC,
+                gyroZ: record.gyroZ_RAD_SEC,
+                heartrate: record.heartrate_BPM,
                 audioFilePath: record.audioFilePath,
-                heartRate: record.heartRate == 0.0 ? nil : record.heartRate,
-                altitude: record.altitude
+                altitude: record.altitude_M
+                result: record.result,
+                confidence: record.confidence_PERCENT,
+                uploadStatus: record.uploadStatus
             )
-            
-            sendServer(record: detectionRecord)
         }
     }
 
-    func sendServer(record: DetectionRecord) {
+    
+    func retryFailedUploads() {
+        let realm = try! Realm()
+        let failedRecords = realm.objects(DetectionRecordRealm.self).filter("uploadStatus == Failed")
+        print("Found \(failedRecords.count) failed records.")
+        print("Retrying upload for failed records")
+        
+        if sendToServer(records: Array(failedRecords)) {
+            for realmRecord in failedRecords {
+                try! realm.write {
+                    realmRecord.uploadStatus = "Complete"
+                }
+            }
+            print("Writing failed record status as Complete")
+            stopRetryLoop()
+            print("Stopping Retry timer")
+        }
+    }
+    func sendToServer(records: [DetectionRecordRealm]) -> Bool {
         let client = GRPCClient()
         
-        var locationMessage = Signalq_Location()
-        locationMessage.latitude = record.gpsLatitude
-        locationMessage.longitude = record.gpsLongitude
-        
-        var orientationMessage = Signalq_Orientation()
-        orientationMessage.pitch = record.orientationPitch
-        orientationMessage.roll = record.orientationRoll
-        orientationMessage.yaw = record.orientationYaw
-        
-        var gyroscopeMessage = Signalq_Gyroscope()
-        gyroscopeMessage.x = record.gyroX
-        gyroscopeMessage.y = record.gyroY
-        gyroscopeMessage.z = record.gyroZ
-        
-        var sensorData = Signalq_SensorData()
-        sensorData.location = locationMessage
-        sensorData.pressure = record.pressure
-        sensorData.orientation = orientationMessage
-        sensorData.gyroscope = gyroscopeMessage
-        
-        var detectionRequest = Signalq_DetectionMessage()
-        detectionRequest.id = record.id.uuidString
-        detectionRequest.timeUtcMilliseconds = Int64(record.timestamp.timeIntervalSince1970 * 1000)
-        detectionRequest.sensors = sensorData
-        
         var detections = Signalq_Detections()
+        var detectionRequest = Signalq_DetectionMessage()
+
+        for record in records {
+            
+            var locationMessage = Signalq_Location()
+            locationMessage.latitude = record.gpsLatitude_DEG
+            locationMessage.longitude = record.gpsLongitude_DEG
+            
+            var orientationMessage = Signalq_Orientation()
+            orientationMessage.pitch = record.orientationPitch_RAD
+            orientationMessage.roll = record.orientationRoll_RAD
+            orientationMessage.yaw = record.orientationYaw_RAD
+            
+            var gyroscopeMessage = Signalq_Gyroscope()
+            gyroscopeMessage.x = record.gyroX_RAD_SEC
+            gyroscopeMessage.y = record.gyroY_RAD_SEC
+            gyroscopeMessage.z = record.gyroZ_RAD_SEC
+            
+            var sensorData = Signalq_SensorData()
+            sensorData.location = locationMessage
+            sensorData.pressure = record.pressure_hPA
+            sensorData.orientation = orientationMessage
+            sensorData.gyroscope = gyroscopeMessage
+            sensorData.heartrate = record.heartrate_BPM
+            
+            detectionRequest = Signalq_DetectionMessage()
+            detectionRequest.id = record.id
+            detectionRequest.timeUtcMilliseconds = Int64(record.timestamp_UTCTime.timeIntervalSince1970 * 1000)
+            detectionRequest.sensors = sensorData
+            
+        }
+        
         detections.detections.append(detectionRequest)
         
         Task {
             do {
                 try await client.runClient(detections: detections)
+                return true
             } catch {
                 print("Error running client: \(error)")
+                return false
             }
         }
+        return false
     }
     
     func removeUploadedRecords() {
