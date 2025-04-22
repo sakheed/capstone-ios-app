@@ -140,6 +140,7 @@ class DetectionRecordRealm: Object {
     @Persisted var gyroY_RAD_SEC: Double // radians per second (rad/s)
     @Persisted var gyroZ_RAD_SEC: Double // radians per second (rad/s)
     @Persisted var heartrate_BPM: Double // beats per minute (BPM)
+    @Persisted var altitude_M: Double // altitude(M)
     @Persisted var audioFilePath: String // file path string
     @Persisted var result: String
     @Persisted var confidence_PERCENT: Double
@@ -169,6 +170,7 @@ struct DetectionScreen: View {
         let gyroY: Double
         let gyroZ: Double
         let heartrate: Double
+        let altitude: Double
         let audioFilePath: String
         let result: String
         let confidence: Double
@@ -204,19 +206,6 @@ struct DetectionScreen: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
-                if let location = locationManager.currentLocation {
-                    VStack(spacing: 4) {
-                        Text("Latitude: \(location.coordinate.latitude)")
-                            .foregroundColor(.white)
-                        Text("Longitude: \(location.coordinate.longitude)")
-                            .foregroundColor(.white)
-                    }
-                    .padding()
-                } else {
-                    Text("Waiting for location...")
-                        .foregroundColor(.gray)
-                        .padding()
-                }
                 
                 // Existing GPS status indicator and time display
                 HStack {
@@ -309,6 +298,15 @@ struct DetectionScreen: View {
                         Text("Gyroscope: Waiting for data...")
                             .foregroundColor(.gray)
                     }
+                    
+                    // Altitude Data
+                    if let altitude = locationManager.currentLocation?.altitude {
+                        Text("Altitude: \(String(format: "%.2f", altitude)) m")
+                            .foregroundColor(.white)
+                    } else {
+                        Text("Altitude: Waiting for data...")
+                            .foregroundColor(.gray)
+                    }
                 }
                 .padding()
                 .background(Color.gray.opacity(0.3))
@@ -356,6 +354,7 @@ struct DetectionScreen: View {
                     gyroY: gyroscopeManager.rotationRate?.y ?? 0.0,
                     gyroZ: gyroscopeManager.rotationRate?.z ?? 0.0,
                     heartrate: heartRateManager.heartRate ?? 0.0,
+                    altitude: locationManager.currentLocation?.altitude ?? 0.0
                     audioFilePath: audioRecorder.audioFilePath,
                     result: notification.userInfo?["result"] as? String ?? "",
                     confidence: notification.userInfo?["confidence"] as? Double ?? 0.0,
@@ -460,13 +459,14 @@ struct DetectionScreen: View {
     
     func exportCSV() {
         // Updated CSV header with units for each column.
-        var csvText = "Timestamp (UTC), GPS_Latitude (°), GPS_Longitude (°), Pressure (hPa), Orientation_Pitch (°), Orientation_Roll (°), Orientation_Yaw (°), Gyro_X (°/s), Gyro_Y (°/s), Gyro_Z (°/s), HeartRate (BPM)\n"
+        var csvText = "Timestamp (UTC), GPS_Latitude (°), GPS_Longitude (°), Pressure (hPa), Orientation_Pitch (°), Orientation_Roll (°), Orientation_Yaw (°), Gyro_X (°/s), Gyro_Y (°/s), Gyro_Z (°/s), HeartRate (BPM), Altitude(m) \n"
         
         // Build CSV rows from each detection record.
         for record in detectionStore.records {
             // The timestamp here is printed using its default description.
             // You might want to format the date if needed.
-            let newLine = "\(record.timestamp),\(record.gpsLatitude),\(record.gpsLongitude),\(record.pressure),\(record.orientationPitch),\(record.orientationRoll),\(record.orientationYaw),\(record.gyroX),\(record.gyroY),\(record.gyroZ),\(record.heartrate)\n"
+            let newLine = "\(record.timestamp),\(record.gpsLatitude),\(record.gpsLongitude),\(record.pressure),\(record.orientationPitch),\(record.orientationRoll),\(record.orientationYaw),\(record.gyroX),\(record.gyroY),\(record.gyroZ),\(record.heartrate), \(record.altitude) \n"
+
             csvText.append(newLine)
         }
         
@@ -504,6 +504,8 @@ struct DetectionScreen: View {
         realmRecord.gyroZ_RAD_SEC = record.gyroZ
         realmRecord.heartrate_BPM = record.heartrate
         realmRecord.audioFilePath = record.audioFilePath
+        realmRecord.heartRate = record.heartRate ?? 0.0
+        realmRecord.altitude = record.altitude
         realmRecord.result = record.result
         realmRecord.confidence_PERCENT = record.confidence * 100
         realmRecord.uploadStatus = record.uploadStatus
@@ -551,6 +553,7 @@ struct DetectionScreen: View {
                 gyroZ: record.gyroZ_RAD_SEC,
                 heartrate: record.heartrate_BPM,
                 audioFilePath: record.audioFilePath,
+                altitude: record.altitude_M
                 result: record.result,
                 confidence: record.confidence_PERCENT,
                 uploadStatus: record.uploadStatus
