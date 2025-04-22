@@ -150,6 +150,9 @@ class DetectionDataStore: ObservableObject {
     @Published var records: [DetectionScreen.DetectionRecord] = []
 }
 
+class UploadRetryManager {
+
+}
 
 struct DetectionScreen: View {
     
@@ -186,6 +189,17 @@ struct DetectionScreen: View {
     @StateObject private var pressureManager = PressureManager()
     
     @State private var exportItem: ExportItem? = nil
+    
+    @State public var timer: Timer?
+    
+    func startRetryLoop() {
+        timer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) {[self] _ in self.retryFailedUploads()}
+    }
+    
+    func stopRetryLoop() {
+        timer?.invalidate()
+        timer = nil
+    }
     
     var body: some View {
         NavigationView {
@@ -500,17 +514,19 @@ struct DetectionScreen: View {
             realm.add(realmRecord)
         }
         
-        if sendToServer(record: realmRecord) {
+        if sendToServer(records: [realmRecord]) {
             try! realm.write {
                 realmRecord.uploadStatus = "Complete"
             }
+            print("Writing Realm record staus as Complete")
         } else {
             try! realm.write {
                 realmRecord.uploadStatus = "Failed"
             }
+            print("Writing Realm record status as Failed")
+            //startRetryLoop()
+            //print("Starting Retry Timer")
         }
-
-
 
     }
 
@@ -542,36 +558,60 @@ struct DetectionScreen: View {
         }
     }
 
-    func sendToServer(record: DetectionRecordRealm) -> Bool {
+    
+    func retryFailedUploads() {
+        let realm = try! Realm()
+        let failedRecords = realm.objects(DetectionRecordRealm.self).filter("uploadStatus == Failed")
+        print("Found \(failedRecords.count) failed records.")
+        print("Retrying upload for failed records")
+        
+        if sendToServer(records: Array(failedRecords)) {
+            for realmRecord in failedRecords {
+                try! realm.write {
+                    realmRecord.uploadStatus = "Complete"
+                }
+            }
+            print("Writing failed record status as Complete")
+            stopRetryLoop()
+            print("Stopping Retry timer")
+        }
+    }
+    func sendToServer(records: [DetectionRecordRealm]) -> Bool {
         let client = GRPCClient()
         
-        var locationMessage = Signalq_Location()
-        locationMessage.latitude = record.gpsLatitude_DEG
-        locationMessage.longitude = record.gpsLongitude_DEG
-        
-        var orientationMessage = Signalq_Orientation()
-        orientationMessage.pitch = record.orientationPitch_RAD
-        orientationMessage.roll = record.orientationRoll_RAD
-        orientationMessage.yaw = record.orientationYaw_RAD
-        
-        var gyroscopeMessage = Signalq_Gyroscope()
-        gyroscopeMessage.x = record.gyroX_RAD_SEC
-        gyroscopeMessage.y = record.gyroY_RAD_SEC
-        gyroscopeMessage.z = record.gyroZ_RAD_SEC
-        
-        var sensorData = Signalq_SensorData()
-        sensorData.location = locationMessage
-        sensorData.pressure = record.pressure_hPA
-        sensorData.orientation = orientationMessage
-        sensorData.gyroscope = gyroscopeMessage
-        sensorData.heartrate = record.heartrate_BPM
-        
-        var detectionRequest = Signalq_DetectionMessage()
-        detectionRequest.id = record.id
-        detectionRequest.timeUtcMilliseconds = Int64(record.timestamp_UTCTime.timeIntervalSince1970 * 1000)
-        detectionRequest.sensors = sensorData
-        
         var detections = Signalq_Detections()
+        var detectionRequest = Signalq_DetectionMessage()
+
+        for record in records {
+            
+            var locationMessage = Signalq_Location()
+            locationMessage.latitude = record.gpsLatitude_DEG
+            locationMessage.longitude = record.gpsLongitude_DEG
+            
+            var orientationMessage = Signalq_Orientation()
+            orientationMessage.pitch = record.orientationPitch_RAD
+            orientationMessage.roll = record.orientationRoll_RAD
+            orientationMessage.yaw = record.orientationYaw_RAD
+            
+            var gyroscopeMessage = Signalq_Gyroscope()
+            gyroscopeMessage.x = record.gyroX_RAD_SEC
+            gyroscopeMessage.y = record.gyroY_RAD_SEC
+            gyroscopeMessage.z = record.gyroZ_RAD_SEC
+            
+            var sensorData = Signalq_SensorData()
+            sensorData.location = locationMessage
+            sensorData.pressure = record.pressure_hPA
+            sensorData.orientation = orientationMessage
+            sensorData.gyroscope = gyroscopeMessage
+            sensorData.heartrate = record.heartrate_BPM
+            
+            detectionRequest = Signalq_DetectionMessage()
+            detectionRequest.id = record.id
+            detectionRequest.timeUtcMilliseconds = Int64(record.timestamp_UTCTime.timeIntervalSince1970 * 1000)
+            detectionRequest.sensors = sensorData
+            
+        }
+        
         detections.detections.append(detectionRequest)
         
         Task {
