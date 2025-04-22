@@ -503,9 +503,8 @@ struct DetectionScreen: View {
         realmRecord.gyroY_RAD_SEC = record.gyroY
         realmRecord.gyroZ_RAD_SEC = record.gyroZ
         realmRecord.heartrate_BPM = record.heartrate
-        realmRecord.audioFilePath = record.audioFilePath
-        realmRecord.heartRate = record.heartRate ?? 0.0
         realmRecord.altitude = record.altitude
+        realmRecord.audioFilePath = record.audioFilePath
         realmRecord.result = record.result
         realmRecord.confidence_PERCENT = record.confidence * 100
         realmRecord.uploadStatus = record.uploadStatus
@@ -552,8 +551,8 @@ struct DetectionScreen: View {
                 gyroY: record.gyroY_RAD_SEC,
                 gyroZ: record.gyroZ_RAD_SEC,
                 heartrate: record.heartrate_BPM,
+                altitude: record.altitude_M,
                 audioFilePath: record.audioFilePath,
-                altitude: record.altitude_M
                 result: record.result,
                 confidence: record.confidence_PERCENT,
                 uploadStatus: record.uploadStatus
