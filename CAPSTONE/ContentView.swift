@@ -474,7 +474,6 @@ struct DetectionScreen: View {
     func saveToRealm(record: DetectionRecord) {
         let realm = try! Realm()
         let realmRecord = DetectionRecordRealm()
-        
         realmRecord.id = record.id.uuidString
         realmRecord.timestamp_UTCTime = record.timestamp
         realmRecord.gpsLatitude_DEG = record.gpsLatitude
@@ -497,9 +496,7 @@ struct DetectionScreen: View {
         try! realm.write {
             realm.add(realmRecord)
         }
-
-
-
+        print("Realm write complete")
     }
     
     func uploadDetectionRecords() {
