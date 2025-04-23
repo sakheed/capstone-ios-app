@@ -463,6 +463,7 @@ struct DetectionScreen: View {
         
         // Build CSV rows from each detection record.
         for record in detectionStore.records {
+            let heartRateValue = record.heartrate
             // The timestamp here is printed using its default description.
             // You might want to format the date if needed.
             let newLine = "\(record.timestamp),\(record.gpsLatitude),\(record.gpsLongitude),\(record.pressure),\(record.orientationPitch),\(record.orientationRoll),\(record.orientationYaw),\(record.gyroX),\(record.gyroY),\(record.gyroZ),\(record.heartrate), \(record.altitude) \n"
@@ -490,7 +491,6 @@ struct DetectionScreen: View {
     func saveToRealm(record: DetectionScreen.DetectionRecord) {
         let realm = try! Realm()
         let realmRecord = DetectionRecordRealm()
-
         realmRecord.id = record.id.uuidString
         realmRecord.timestamp_UTCTime = record.timestamp
         realmRecord.gpsLatitude_DEG = record.gpsLatitude
@@ -514,6 +514,7 @@ struct DetectionScreen: View {
         try! realm.write {
             realm.add(realmRecord)
         }
+        print("Realm write complete")
         
         if sendToServer(records: [realmRecord]) {
             try! realm.write {
@@ -528,7 +529,6 @@ struct DetectionScreen: View {
             //startRetryLoop()
             //print("Starting Retry Timer")
         }
-
     }
 
     
