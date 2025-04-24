@@ -34,8 +34,8 @@
   - Upload functionality to remote server via gRPC.
 
 #### 🔑 Key Functions:
-- `saveToRealm(record:)`: Saves event data to Realm.
-- `uploadDetectionRecords()`: Converts Realm data to proto and uploads.
+- `saveToRealm(record:)`: Saves event data to Realm and triggers `sendToServer`
+- `sendToServer(records:)`: Converts Realm record data to proto and uploads.
 - `exportCSV()`, `exportData(type:)`: Exports collected data.
 - `retryFailedUploads()`: Retries uploads for failed records.
 
@@ -84,9 +84,22 @@ Each of these uses `@Published` properties to expose live data to the UI.
 ---
 
 ## ☁️ Uploading and Server Integration
-- gRPC client sends a `Signalq_Detections` message.
-- Each detection record is packed with `SensorData`, `Location`, `Orientation`, `Gyroscope`, `Pressure`, and `HeartRate`.
-- On upload success, record is marked `"Complete"`; otherwise `"Failed"`.
+This project implements a Python-based gRPC client and server for sending structured detection messages, including location and sensor data (e.g., gunshot detections), over the network using Protocol Buffers.
+
+### `proto-repo/proto/detection.proto`
+- Defines a Detection service that sends a `DetectionMessage` and and returns an `Acknowledgement` message
+- `Acknowledgement`: either `true` for Ack or `false` for Nack and a reason for failure, if applicable
+- `DetectionMessage`: contains all time, location, sensor and classification data for each detection the detection 
+- The service can one or more detections at once
+
+### `proto-repo/server/server.py`
+- Server listens for incoming Detection messages and responds with Acknowledgement true
+- Starts the server on port 50051
+
+### `GRPClient.swift`
+- Client side code with GRPCClient
+- `runClient(detections: Signalq_Detections)`: Takes a detection record and sets up target host (127.0.0.1) and port (50051). **Note**: target host should be the IP address of the phone used for testing.
+- `sendDetection(using detectionService: Signalq_DetectionService.ClientProtocol, detections: Signalq_Detections)`: calls the gRPC method in the generated swift files using ClientProtocol; prints the response from the server
 
 ---
 
