@@ -606,6 +606,7 @@ struct DetectionScreen: View {
             sensorData.orientation = orientationMessage
             sensorData.gyroscope = gyroscopeMessage
             sensorData.heartrate = record.heartrate_BPM
+            sensorData.altitutde = record.altitude_M
             
             detectionRequest = Signalq_DetectionMessage()
             detectionRequest.id = record.id
