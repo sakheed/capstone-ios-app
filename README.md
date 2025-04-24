@@ -9,7 +9,54 @@
 ---
 
 ## Requirements and Cloning the Repo 
-[need to add here]
+### 1. Clone the Repo with Submodules
+If you’re cloning the repo for the first time, use:
+```
+git clone --recurse-submodules https://gitlab.eecis.udel.edu/cisc-capstone-teams/2024-2025/team-22/ios-app.git
+```
+To update the submodule to the latest version later:
+```
+git submodule update --remote
+```
+
+### 2. Install Python Dependencies
+```
+pip install grpcio grpcio-tools
+```
+### 3. Generate proto files
+The generated files should exist in the repository to start off, but if any changes are made to the `detections.proto` file, run the following make commands in the `./ios-app/CAPSTONE` path
+```
+make proto
+```
+OR
+```
+make python-proto
+make swift-proto
+```
+**Note**: If there is an error on line 6 of ./proto-repo/generated/detection_pb2_grpc.py, change it to 
+```
+from . import detection_pb2 as detection__pb2
+```
+### 4. Start the gRPC server
+Starts the backend server on port 50051
+```
+make start-server
+```
+To see whether the server is listening, run:
+```
+lsof -i :50051
+```
+
+### 5. Build the project on XCode
+
+[Any other steps here]
+
+### 6. Kill the server
+To ensure the server has been terminated, run:
+```
+make kill-server
+```
+
 
 ---
 
@@ -100,6 +147,10 @@ This project implements a Python-based gRPC client and server for sending struct
 - Client side code with GRPCClient
 - `runClient(detections: Signalq_Detections)`: Takes a detection record and sets up target host (127.0.0.1) and port (50051). **Note**: target host should be the IP address of the phone used for testing.
 - `sendDetection(using detectionService: Signalq_DetectionService.ClientProtocol, detections: Signalq_Detections)`: calls the gRPC method in the generated swift files using ClientProtocol; prints the response from the server
+
+### `detection.grpc.swift` and `detection.pb.swift`
+**Do not edit these files!** These files are generated from the `make proto` command containing client stubs for the gRPC service.
+
 
 ---
 
