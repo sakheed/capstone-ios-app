@@ -45,6 +45,7 @@
 - Core engine to manage audio analysis and recording.
 - Uses AudioKit and Apple SoundAnalysis framework.
 - Maintains a rolling buffer to capture pre/post-trigger audio.
+- See DOCUMENTATION folder for details on how to create and train a CoreML model within XCode. 
 
 #### 🔑 Key Functions:
 - `startRecording()` / `stopRecording()`: Manage AudioKit engine.
@@ -61,17 +62,6 @@
 
 ---
 
-### `LocationManager.swift`
-- Wrapper around `CLLocationManager`.
-- Publishes location and altitude updates.
-- Requests background permission.
-
-#### 🔑 Key Functions:
-- `startUpdating()` / `stopUpdating()`
-- `locationManager(_:didUpdateLocations:)`
-
----
-
 ### `QRScannerView.swift`
 - QR code scanner built with `AVFoundation`.
 - Supports automatic URL open and scanning feedback.
@@ -83,7 +73,7 @@
 ---
 
 ## 🧪 Sensor Managers
-The following sensors follow the same structure as `LocationManager`:
+- `LocationManager`
 - `HeartRateManager.swift`
 - `OrientationManager.swift`
 - `PressureManager.swift`
@@ -106,6 +96,7 @@ Each of these uses `@Published` properties to expose live data to the UI.
 - Accessible through the UI menu on the Detection screen.
 
 ---
+
 
 
 
