@@ -102,6 +102,8 @@ struct Signalq_SensorData: Sendable {
 
   var heartrate: Double = 0
 
+  var altitutde: Double = 0
+
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
@@ -329,6 +331,7 @@ extension Signalq_SensorData: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     3: .same(proto: "orientation"),
     4: .same(proto: "gyroscope"),
     5: .same(proto: "heartrate"),
+    6: .same(proto: "altitutde"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -342,6 +345,7 @@ extension Signalq_SensorData: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
       case 3: try { try decoder.decodeSingularMessageField(value: &self._orientation) }()
       case 4: try { try decoder.decodeSingularMessageField(value: &self._gyroscope) }()
       case 5: try { try decoder.decodeSingularDoubleField(value: &self.heartrate) }()
+      case 6: try { try decoder.decodeSingularDoubleField(value: &self.altitutde) }()
       default: break
       }
     }
@@ -367,6 +371,9 @@ extension Signalq_SensorData: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     if self.heartrate.bitPattern != 0 {
       try visitor.visitSingularDoubleField(value: self.heartrate, fieldNumber: 5)
     }
+    if self.altitutde.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.altitutde, fieldNumber: 6)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -376,6 +383,7 @@ extension Signalq_SensorData: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     if lhs._orientation != rhs._orientation {return false}
     if lhs._gyroscope != rhs._gyroscope {return false}
     if lhs.heartrate != rhs.heartrate {return false}
+    if lhs.altitutde != rhs.altitutde {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
