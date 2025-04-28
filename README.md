@@ -64,7 +64,7 @@ make kill-server
 
 ### `CAPSTONEApp.swift`
 - App entry point.
-- Generates a unique Realm database per app launch to avoid conflicts.
+- Generates Realm database instance
 - Injects `DetectionDataStore` into the environment for app-wide use.
 
 ---
@@ -125,6 +125,8 @@ make kill-server
 - `OrientationManager.swift`
 - `PressureManager.swift`
 - `GyroscopeManager.swift`
+- `AltitudeManager.swift`
+- `FloorCounter.swift`
 
 Each of these uses `@Published` properties to expose live data to the UI.
 
