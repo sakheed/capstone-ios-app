@@ -141,6 +141,8 @@ class DetectionRecordRealm: Object {
     @Persisted var gyroZ_RAD_SEC: Double // radians per second (rad/s)
     @Persisted var heartrate_BPM: Double // beats per minute (BPM)
     @Persisted var altitude_M: Double // altitude(M)
+    @Persisted var relativeAltitude_M: Double // relative altitude (M)
+    @Persisted var floorsClimbed_Floors: Double //floors climbed (floors)
     @Persisted var audioFilePath: String // file path string
     @Persisted var result: String
     @Persisted var confidence_PERCENT: Double
@@ -171,6 +173,8 @@ struct DetectionScreen: View {
         let gyroZ: Double
         let heartrate: Double
         let altitude: Double
+        let relativeAltitude: Double
+        let floorsClimbed: Double
         let audioFilePath: String
         let result: String
         let confidence: Double
@@ -189,6 +193,9 @@ struct DetectionScreen: View {
     @StateObject private var orientationManager = OrientationManager()
     @StateObject private var gyroscopeManager = GyroscopeManager()
     @StateObject private var pressureManager = PressureManager()
+    
+    @StateObject private var altitudeManager  = AltitudeManager()
+    @StateObject private var floorCounter = FloorCounter()
     
     @State private var exportItem: ExportItem? = nil
     
@@ -307,6 +314,27 @@ struct DetectionScreen: View {
                         Text("Altitude: Waiting for data...")
                             .foregroundColor(.gray)
                     }
+                    
+                    // Relative Altitude
+                    
+                    if let relativeAltitude = altitudeManager.relativeAltitude {
+                        Text("Relative Altitude: \(String(format: "%.2f", relativeAltitude)) m").foregroundColor(.white)
+                    } else {
+                        Text("Relative Altitude: Waiting for data...")
+                            .foregroundColor(.gray)
+                    }
+                    
+                    // Floors Climbed
+                    
+                    if let floorsClimbed = floorCounter.floorDelta {
+                        Text("Floors Climbed: \(String(format: "%.0f", floorsClimbed)) floors").foregroundColor(.white)
+
+                    } else {
+                        Text("Floors Climbed: Waiting for data...")
+                            .foregroundColor(.gray)
+                    }
+                    
+                    
                 }
                 .padding()
                 .background(Color.gray.opacity(0.3))
@@ -355,6 +383,8 @@ struct DetectionScreen: View {
                     gyroZ: gyroscopeManager.rotationRate?.z ?? 0.0,
                     heartrate: heartRateManager.heartRate ?? 0.0,
                     altitude: locationManager.currentLocation?.altitude ?? 0.0,
+                    relativeAltitude: altitudeManager.relativeAltitude ?? 0.0,
+                    floorsClimbed: floorCounter.floorDelta ?? 0.0,
                     audioFilePath: audioRecorder.audioFilePath,
                     result: notification.userInfo?["result"] as? String ?? "",
                     confidence: notification.userInfo?["confidence"] as? Double ?? 0.0,
@@ -459,14 +489,14 @@ struct DetectionScreen: View {
     
     func exportCSV() {
         // Updated CSV header with units for each column.
-        var csvText = "Timestamp (UTC), GPS_Latitude (°), GPS_Longitude (°), Pressure (hPa), Orientation_Pitch (°), Orientation_Roll (°), Orientation_Yaw (°), Gyro_X (°/s), Gyro_Y (°/s), Gyro_Z (°/s), HeartRate (BPM), Altitude(m) \n"
+        var csvText = "Timestamp (UTC), GPS_Latitude (°), GPS_Longitude (°), Pressure (hPa), Orientation_Pitch (°), Orientation_Roll (°), Orientation_Yaw (°), Gyro_X (°/s), Gyro_Y (°/s), Gyro_Z (°/s), HeartRate (BPM), Altitude(m), Relative Altitude (m), Floors Climbed (floors) \n"
         
         // Build CSV rows from each detection record.
         for record in detectionStore.records {
             let heartRateValue = record.heartrate
             // The timestamp here is printed using its default description.
             // You might want to format the date if needed.
-            let newLine = "\(record.timestamp),\(record.gpsLatitude),\(record.gpsLongitude),\(record.pressure),\(record.orientationPitch),\(record.orientationRoll),\(record.orientationYaw),\(record.gyroX),\(record.gyroY),\(record.gyroZ),\(record.heartrate), \(record.altitude) \n"
+            let newLine = "\(record.timestamp),\(record.gpsLatitude),\(record.gpsLongitude),\(record.pressure),\(record.orientationPitch),\(record.orientationRoll),\(record.orientationYaw),\(record.gyroX),\(record.gyroY),\(record.gyroZ),\(record.heartrate), \(record.altitude), \(record.relativeAltitude), \(record.floorsClimbed) \n"
 
             csvText.append(newLine)
         }
@@ -504,6 +534,8 @@ struct DetectionScreen: View {
         realmRecord.gyroZ_RAD_SEC = record.gyroZ
         realmRecord.heartrate_BPM = record.heartrate
         realmRecord.altitude_M = record.altitude
+        realmRecord.relativeAltitude_M = record.relativeAltitude
+        realmRecord.floorsClimbed_Floors = record.floorsClimbed
         realmRecord.audioFilePath = record.audioFilePath
         realmRecord.result = record.result
         realmRecord.confidence_PERCENT = record.confidence * 100
@@ -552,6 +584,8 @@ struct DetectionScreen: View {
                 gyroZ: record.gyroZ_RAD_SEC,
                 heartrate: record.heartrate_BPM,
                 altitude: record.altitude_M,
+                relativeAltitude: record.relativeAltitude_M,
+                floorsClimbed: record.floorsClimbed_Floors,
                 audioFilePath: record.audioFilePath,
                 result: record.result,
                 confidence: record.confidence_PERCENT,
@@ -607,6 +641,8 @@ struct DetectionScreen: View {
             sensorData.gyroscope = gyroscopeMessage
             sensorData.heartrate = record.heartrate_BPM
             sensorData.altitutde = record.altitude_M
+            
+            //need to add relative altitude and floors climbed here
             
             detectionRequest = Signalq_DetectionMessage()
             detectionRequest.id = record.id
