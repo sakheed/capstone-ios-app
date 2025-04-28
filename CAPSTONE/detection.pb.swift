@@ -102,7 +102,11 @@ struct Signalq_SensorData: Sendable {
 
   var heartrate: Double = 0
 
-  var altitutde: Double = 0
+  var altitude: Double = 0
+
+  var relativeAltitude: Double = 0
+
+  var floorsClimbed: Double = 0
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -141,40 +145,45 @@ struct Signalq_Detections: Sendable {
   init() {}
 }
 
-struct Signalq_DetectionMessage: Sendable {
+struct Signalq_DetectionMessage: @unchecked Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
   /// Unique identifier
-  var id: String = String()
+  var id: String {
+    get {return _storage._id}
+    set {_uniqueStorage()._id = newValue}
+  }
 
-  var timeUtcMilliseconds: Int64 = 0
+  var timeUtcMilliseconds: Int64 {
+    get {return _storage._timeUtcMilliseconds}
+    set {_uniqueStorage()._timeUtcMilliseconds = newValue}
+  }
 
   var sensors: Signalq_SensorData {
-    get {return _sensors ?? Signalq_SensorData()}
-    set {_sensors = newValue}
+    get {return _storage._sensors ?? Signalq_SensorData()}
+    set {_uniqueStorage()._sensors = newValue}
   }
   /// Returns true if `sensors` has been explicitly set.
-  var hasSensors: Bool {return self._sensors != nil}
+  var hasSensors: Bool {return _storage._sensors != nil}
   /// Clears the value of `sensors`. Subsequent reads from it will return its default value.
-  mutating func clearSensors() {self._sensors = nil}
+  mutating func clearSensors() {_uniqueStorage()._sensors = nil}
 
   var classification: Signalq_Classification {
-    get {return _classification ?? Signalq_Classification()}
-    set {_classification = newValue}
+    get {return _storage._classification ?? Signalq_Classification()}
+    set {_uniqueStorage()._classification = newValue}
   }
   /// Returns true if `classification` has been explicitly set.
-  var hasClassification: Bool {return self._classification != nil}
+  var hasClassification: Bool {return _storage._classification != nil}
   /// Clears the value of `classification`. Subsequent reads from it will return its default value.
-  mutating func clearClassification() {self._classification = nil}
+  mutating func clearClassification() {_uniqueStorage()._classification = nil}
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
 
-  fileprivate var _sensors: Signalq_SensorData? = nil
-  fileprivate var _classification: Signalq_Classification? = nil
+  fileprivate var _storage = _StorageClass.defaultInstance
 }
 
 struct Signalq_Acknowledgement: Sendable {
@@ -331,7 +340,9 @@ extension Signalq_SensorData: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     3: .same(proto: "orientation"),
     4: .same(proto: "gyroscope"),
     5: .same(proto: "heartrate"),
-    6: .same(proto: "altitutde"),
+    6: .same(proto: "altitude"),
+    7: .same(proto: "relativeAltitude"),
+    8: .same(proto: "floorsClimbed"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -345,7 +356,9 @@ extension Signalq_SensorData: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
       case 3: try { try decoder.decodeSingularMessageField(value: &self._orientation) }()
       case 4: try { try decoder.decodeSingularMessageField(value: &self._gyroscope) }()
       case 5: try { try decoder.decodeSingularDoubleField(value: &self.heartrate) }()
-      case 6: try { try decoder.decodeSingularDoubleField(value: &self.altitutde) }()
+      case 6: try { try decoder.decodeSingularDoubleField(value: &self.altitude) }()
+      case 7: try { try decoder.decodeSingularDoubleField(value: &self.relativeAltitude) }()
+      case 8: try { try decoder.decodeSingularDoubleField(value: &self.floorsClimbed) }()
       default: break
       }
     }
@@ -371,8 +384,14 @@ extension Signalq_SensorData: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     if self.heartrate.bitPattern != 0 {
       try visitor.visitSingularDoubleField(value: self.heartrate, fieldNumber: 5)
     }
-    if self.altitutde.bitPattern != 0 {
-      try visitor.visitSingularDoubleField(value: self.altitutde, fieldNumber: 6)
+    if self.altitude.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.altitude, fieldNumber: 6)
+    }
+    if self.relativeAltitude.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.relativeAltitude, fieldNumber: 7)
+    }
+    if self.floorsClimbed.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.floorsClimbed, fieldNumber: 8)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -383,7 +402,9 @@ extension Signalq_SensorData: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     if lhs._orientation != rhs._orientation {return false}
     if lhs._gyroscope != rhs._gyroscope {return false}
     if lhs.heartrate != rhs.heartrate {return false}
-    if lhs.altitutde != rhs.altitutde {return false}
+    if lhs.altitude != rhs.altitude {return false}
+    if lhs.relativeAltitude != rhs.relativeAltitude {return false}
+    if lhs.floorsClimbed != rhs.floorsClimbed {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -468,46 +489,92 @@ extension Signalq_DetectionMessage: SwiftProtobuf.Message, SwiftProtobuf._Messag
     4: .same(proto: "classification"),
   ]
 
+  fileprivate class _StorageClass {
+    var _id: String = String()
+    var _timeUtcMilliseconds: Int64 = 0
+    var _sensors: Signalq_SensorData? = nil
+    var _classification: Signalq_Classification? = nil
+
+    #if swift(>=5.10)
+      // This property is used as the initial default value for new instances of the type.
+      // The type itself is protecting the reference to its storage via CoW semantics.
+      // This will force a copy to be made of this reference when the first mutation occurs;
+      // hence, it is safe to mark this as `nonisolated(unsafe)`.
+      static nonisolated(unsafe) let defaultInstance = _StorageClass()
+    #else
+      static let defaultInstance = _StorageClass()
+    #endif
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _id = source._id
+      _timeUtcMilliseconds = source._timeUtcMilliseconds
+      _sensors = source._sensors
+      _classification = source._classification
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
+
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
-      case 2: try { try decoder.decodeSingularInt64Field(value: &self.timeUtcMilliseconds) }()
-      case 3: try { try decoder.decodeSingularMessageField(value: &self._sensors) }()
-      case 4: try { try decoder.decodeSingularMessageField(value: &self._classification) }()
-      default: break
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        // The use of inline closures is to circumvent an issue where the compiler
+        // allocates stack space for every case branch when no optimizations are
+        // enabled. https://github.com/apple/swift-protobuf/issues/1034
+        switch fieldNumber {
+        case 1: try { try decoder.decodeSingularStringField(value: &_storage._id) }()
+        case 2: try { try decoder.decodeSingularInt64Field(value: &_storage._timeUtcMilliseconds) }()
+        case 3: try { try decoder.decodeSingularMessageField(value: &_storage._sensors) }()
+        case 4: try { try decoder.decodeSingularMessageField(value: &_storage._classification) }()
+        default: break
+        }
       }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    if !self.id.isEmpty {
-      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every if/case branch local when no optimizations
+      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+      // https://github.com/apple/swift-protobuf/issues/1182
+      if !_storage._id.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._id, fieldNumber: 1)
+      }
+      if _storage._timeUtcMilliseconds != 0 {
+        try visitor.visitSingularInt64Field(value: _storage._timeUtcMilliseconds, fieldNumber: 2)
+      }
+      try { if let v = _storage._sensors {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+      } }()
+      try { if let v = _storage._classification {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+      } }()
     }
-    if self.timeUtcMilliseconds != 0 {
-      try visitor.visitSingularInt64Field(value: self.timeUtcMilliseconds, fieldNumber: 2)
-    }
-    try { if let v = self._sensors {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
-    } }()
-    try { if let v = self._classification {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
-    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: Signalq_DetectionMessage, rhs: Signalq_DetectionMessage) -> Bool {
-    if lhs.id != rhs.id {return false}
-    if lhs.timeUtcMilliseconds != rhs.timeUtcMilliseconds {return false}
-    if lhs._sensors != rhs._sensors {return false}
-    if lhs._classification != rhs._classification {return false}
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._id != rhs_storage._id {return false}
+        if _storage._timeUtcMilliseconds != rhs_storage._timeUtcMilliseconds {return false}
+        if _storage._sensors != rhs_storage._sensors {return false}
+        if _storage._classification != rhs_storage._classification {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

@@ -640,7 +640,9 @@ struct DetectionScreen: View {
             sensorData.orientation = orientationMessage
             sensorData.gyroscope = gyroscopeMessage
             sensorData.heartrate = record.heartrate_BPM
-            sensorData.altitutde = record.altitude_M
+            sensorData.altitude = record.altitude_M
+            sensorData.relativeAltitude = record.relativeAltitude_M
+            sensorData.floorsClimbed = record.floorsClimbed_Floors
             
             //need to add relative altitude and floors climbed here
             
