@@ -16,7 +16,7 @@ If you’re cloning the repo for the first time, use:
 ```
 git clone --recurse-submodules https://gitlab.eecis.udel.edu/cisc-capstone-teams/2024-2025/team-22/ios-app.git
 ```
-To update the submodule to the latest version later:
+If the repo has been cloned, but updates are made to the server code, update the submodule to the latest version by running the below command in the `ios-app/proto-repo` path:
 ```
 git submodule update --remote
 ```
@@ -26,7 +26,7 @@ git submodule update --remote
 pip install grpcio grpcio-tools
 ```
 ### 3. Generate proto files
-The generated files should exist in the repository to start off, but if any changes are made to the `detections.proto` file, run the following make commands in the `./ios-app/CAPSTONE` path
+**The generated files should exist in the repository to start off!** However, if any changes are made to the `detections.proto` file, run the following make commands in the `./ios-app/CAPSTONE` path
 ```
 make proto
 ```
@@ -40,7 +40,7 @@ make swift-proto
 from . import detection_pb2 as detection__pb2
 ```
 ### 4. Start the gRPC server
-Starts the backend server on port 50051
+Start the backend server on port 50051 in the `./ios-app/CAPSTONE` path
 ```
 make start-server
 ```
