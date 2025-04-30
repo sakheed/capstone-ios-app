@@ -178,8 +178,8 @@ This project implements a Python-based gRPC client and server for sending struct
 ---
 
 ## 📤 Export Features
-- **WAV ZIP Export**: Packs all `gunshot_*.caf` audio clips into a `audioClips.zip` archive.
-- **CSV Export**: Exports sensor metadata in human-readable format.
+- **WAV ZIP Export**: Packs all `gunshot_*.caf` audio clips (basically all detections) into a `audioClips.zip` and allows user to send via normal iPhone export (ex: email, save to files, text, etc).
+- **CSV Export**: Exports sensor data as a CSV and allows user to send via normal iPhone export (ex: email, save to files, text, etc)
 - Accessible through the UI menu on the Detection screen.
 
 ---
