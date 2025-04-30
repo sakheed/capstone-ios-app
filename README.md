@@ -4,7 +4,7 @@
 ---
 
 ## Project Brief: 
-**SignalQ** is a SwiftUI-based iOS app designed to record low latency audio and detect gunshots using a CoreML machine learning classifier model. Upon detection, it records data from multiple sensors including GPS, heart rate, gyroscope, and pressure. All data is saved locally with Realm and then uploaded to a backend using gRPC.
+**SignalQ** is a SwiftUI-based iOS app designed to record low latency audio and detect gunshots using a CoreML machine learning classifier model. Upon detection, it records data from multiple sensors including GPS, heart rate, gyroscope, pressure, and altitude. All data is saved locally with Realm and then uploaded to a backend using gRPC.
 
 ---
 
