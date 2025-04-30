@@ -11,22 +11,16 @@
 ## Requirements and Cloning the Repo 
 
 ### SERVER: 
-### 1. Clone the Repo with Submodules
-If you’re cloning the repo for the first time, use:
-```
-git clone --recurse-submodules https://gitlab.eecis.udel.edu/cisc-capstone-teams/2024-2025/team-22/ios-app.git
-```
-If the repo has been cloned, but updates are made to the server code, update the submodule to the latest version by running the below command in the `ios-app/proto-repo` path:
-```
-git submodule update --remote
-```
+### 1. Setting Up The Repository
+You should have two zip files: `ios-app-main.zip` and `app-server-main.zip`.
+Extract both of these zip files and drag the contents of `app-server-main` into `ios-app-main/proto-repo`.
 
 ### 2. Install Python Dependencies
 ```
 pip install grpcio grpcio-tools
 ```
 ### 3. Generate proto files
-**The generated files should exist in the repository to start off!** However, if any changes are made to the `detections.proto` file, run the following make commands in the `./ios-app/CAPSTONE` path
+**The generated files should exist in the repository to start off!** However, if any changes are made to the `detections.proto` file, run the following make commands in the `ios-app-main/CAPSTONE` path
 ```
 make proto
 ```
@@ -35,12 +29,12 @@ OR
 make python-proto
 make swift-proto
 ```
-**Note**: If there is an error on line 6 of ./proto-repo/generated/detection_pb2_grpc.py, change it to 
+**Note**: If there is an error on line 6 of `ios-app-main/proto-repo/generated/detection_pb2_grpc.py`, change it to 
 ```
 from . import detection_pb2 as detection__pb2
 ```
 ### 4. Start the gRPC server
-Start the backend server on port 50051 in the `./ios-app/CAPSTONE` path
+Start the backend server on port 50051 in the `ios-app-main/CAPSTONE` path
 ```
 make start-server
 ```
