@@ -59,8 +59,8 @@ After cloning the repo with the steps above, open CAPSTONE.xcworkspace in Xcode.
 - Unlock the device and tap “Trust” when prompted.
 
 ### 3. Enable Developer Mode on iOS 16+
-1. Settings → Privacy & Security → Developer Mode
-2. Turn ON → Reboot → Tap “Enable”
+- Settings → Privacy & Security → Developer Mode
+- Turn ON → Reboot → Tap “Enable”
 
 ### 4. Select Device & Team 
 - In Xcode top toolbar, choose your iPhone.
@@ -72,6 +72,11 @@ After cloning the repo with the steps above, open CAPSTONE.xcworkspace in Xcode.
 - Press the Play button to Run 
 - You should see the Capstone App being built and automatically open on your phone.
 - If you get a "Developer not trusted" popup, go to Settings --> General --> VPM & Device Management --> Trust this developer 
+- To find the ip address of the phone, run:
+```
+ipconfig getifaddr en0
+```
+- Change the target under GRPCClient to this ip 
 
 ---
 
