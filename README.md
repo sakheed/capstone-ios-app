@@ -9,6 +9,8 @@
 ---
 
 ## Requirements and Cloning the Repo 
+
+### SERVER: 
 ### 1. Clone the Repo with Submodules
 If you’re cloning the repo for the first time, use:
 ```
@@ -47,16 +49,35 @@ To see whether the server is listening, run:
 lsof -i :50051
 ```
 
-### 5. Build the project on XCode
-
-[Any other steps here]
-
-### 6. Kill the server
+### 5. Kill the server
 To ensure the server has been terminated, run:
 ```
 make kill-server
 ```
 
+### BUILDING THE APP 
+
+### 1. Open XCode 
+After cloning the repo with the steps above, open CAPSTONE.xcworkspace in Xcode. 
+
+### 2. Connect Your iPhone
+- Plug into your Mac with a Lightning or USB‑C cable.
+- Unlock the device and tap “Trust” when prompted.
+
+### 3. Enable Developer Mode on iOS 16+
+1. Settings → Privacy & Security → Developer Mode
+2. Turn ON → Reboot → Tap “Enable”
+
+### 4. Select Device & Team 
+- In Xcode top toolbar, choose your iPhone.
+- Project → Signing & Capabilities → Team: <Your Dev Team>
+- Bundle Identifier: unique (e.g. com.yourorg.SignalQ) (Note: you will have to change this every 30 days when it expires)
+
+### 5. Build & Run
+- Command Shift K (on Mac) to Clean
+- Press the Play button to Run 
+- You should see the Capstone App being built and automatically open on your phone.
+- If you get a "Developer not trusted" popup, go to Settings --> General --> VPM & Device Management --> Trust this developer 
 
 ---
 
