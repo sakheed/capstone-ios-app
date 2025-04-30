@@ -101,7 +101,7 @@ After cloning the repo with the steps above, open CAPSTONE.xcworkspace in Xcode.
   - Allows export of audio (WAV ZIP) and sensor logs (CSV).
   - Upload functionality to remote server via gRPC.
 
-#### 🔑 Key Functions:
+#### Key Functions:
 - `saveToRealm(record:)`: Saves event data to Realm and triggers `sendToServer`
 - `sendToServer(records:)`: Converts Realm record data to proto and uploads.
 - `exportCSV()`, `exportData(type:)`: Exports collected data.
@@ -115,13 +115,13 @@ After cloning the repo with the steps above, open CAPSTONE.xcworkspace in Xcode.
 - Maintains a rolling buffer to capture pre/post-trigger audio.
 - See DOCUMENTATION folder for details on how to create and train a CoreML model within XCode. 
 
-#### 🔑 Key Functions:
+#### Key Functions:
 - `startRecording()` / `stopRecording()`: Manage AudioKit engine.
 - `storeAudioBuffer(_:)`: Updates rolling buffer, detects trigger, stores data.
 - `analyzeAudio(_:)`: Runs sound classification.
 - `saveGunshotClip(buffers:)`: Writes `.caf` audio file and triggers `NotificationCenter`.
 
-#### 🔄 Process Flow:
+#### Process Flow:
 1. Audio stream starts.
 2. Buffer sent to CoreML classifier.
 3. If gunshot confidence > 0.8, record is triggered.
@@ -134,13 +134,13 @@ After cloning the repo with the steps above, open CAPSTONE.xcworkspace in Xcode.
 - QR code scanner built with `AVFoundation`.
 - Supports automatic URL open and scanning feedback.
 
-#### 🔑 Key Functions:
+#### Key Functions:
 - `makeUIViewController(context:)`: Camera setup.
 - `metadataOutput(_:didOutput:)`: QR code detection and handling.
 
 ---
 
-## 🧪 Sensor Managers
+## Sensor Managers
 - `LocationManager`
 - `HeartRateManager.swift`
 - `OrientationManager.swift`
@@ -153,7 +153,7 @@ Each of these uses `@Published` properties to expose live data to the UI.
 
 ---
 
-## ☁️ Uploading and Server Integration
+## Uploading and Server Integration
 This project implements a Python-based gRPC client and server for sending structured detection messages, including location and sensor data (e.g., gunshot detections), over the network using Protocol Buffers.
 
 ### `proto-repo/proto/detection.proto`
@@ -177,7 +177,7 @@ This project implements a Python-based gRPC client and server for sending struct
 
 ---
 
-## 📤 Export Features
+## Export Features
 - **WAV ZIP Export**: Packs all `gunshot_*.caf` audio clips (basically all detections) into a `audioClips.zip` and allows user to send via normal iPhone export (ex: email, save to files, text, etc).
 - **CSV Export**: Exports sensor data as a CSV and allows user to send via normal iPhone export (ex: email, save to files, text, etc)
 - Accessible through the UI menu on the Detection screen.
