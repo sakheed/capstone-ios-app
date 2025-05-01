@@ -9,13 +9,15 @@ import HealthKit
 import Foundation
 import Combine
 
+// HeartRateManager handles HealthKit authorization and heart rate data sampling
 class HeartRateManager: ObservableObject {
+    // HealthKit store for reading heart rate data
     private let healthStore = HKHealthStore()
     
-    // Published property to update the UI when the heart rate is retrieved
+    // Published heart rate value in beats per minute
     @Published var heartRate: Double?
     
-    // Request permission and start querying for heart rate data
+    // Request permission to read heart rate data and start observing if granted
     func requestAuthorization() {
         guard HKHealthStore.isHealthDataAvailable() else {
             print("Health data not available on this device")
@@ -29,56 +31,50 @@ class HeartRateManager: ObservableObject {
         
         healthStore.requestAuthorization(toShare: nil, read: [heartRateType]) { [weak self] success, error in
             if success {
-                self?.startObservingHeartRateData()
+                self?.startObservingHeartRateData() // Begin live data updates
             } else if let error = error {
                 print("HealthKit authorization failed: \(error.localizedDescription)")
             }
         }
     }
     
-    // Query heart rate using HKAnchoredObjectQuery
+    // Set up anchored query to receive existing and new heart rate samples
     private func startObservingHeartRateData() {
         guard let heartRateType = HKObjectType.quantityType(forIdentifier: .heartRate) else { return }
         
         let query = HKAnchoredObjectQuery(type: heartRateType,
                                           predicate: nil,
                                           anchor: nil,
-                                          limit: HKObjectQueryNoLimit) { [weak self] query, samples, deletedObjects, newAnchor, error in
+                                          limit: HKObjectQueryNoLimit) { [weak self] _, samples, _, _, _ in
+            if let samples = samples as? [HKQuantitySample] {
+                self?.handleHeartRateSamples(samples) // Process initial samples
+            }
+        }
+        
+        // Continuously receive updates for new heart rate samples
+        query.updateHandler = { [weak self] _, samples, _, _, _ in
             if let samples = samples as? [HKQuantitySample] {
                 self?.handleHeartRateSamples(samples)
             }
         }
         
-        // Update handler for live data updates
-        query.updateHandler = { [weak self] query, samples, deletedObjects, newAnchor, error in
-            if let samples = samples as? [HKQuantitySample] {
-                self?.handleHeartRateSamples(samples)
-            }
-        }
-        
-        healthStore.execute(query)
+        healthStore.execute(query) // Execute the query
     }
     
-    // Process the heart rate samples and update the published heartRate
+    // Filter, convert, and publish the most recent Apple Watch heart rate sample
     private func handleHeartRateSamples(_ samples: [HKQuantitySample]) {
-        // Optionally, filter samples to only include those that come from an Apple Watch.
-        // Adjust the string check as needed based on the actual source name of the Apple Watch.
+        // Keep only samples originating from an Apple Watch
         let appleWatchSamples = samples.filter { sample in
-            guard let sourceName = sample.sourceRevision.source.name.lowercased() as String? else {
-                return false
-            }
-            return sourceName.contains("watch")
+            sample.sourceRevision.source.name.lowercased().contains("watch")
         }
         
-        // If no Apple Watch samples are found, do nothing.
         guard let sample = appleWatchSamples.last else { return }
-        
         let heartRateUnit = HKUnit.count().unitDivided(by: HKUnit.minute())
         let heartRateValue = sample.quantity.doubleValue(for: heartRateUnit)
         
         DispatchQueue.main.async {
+            // Update published property
             self.heartRate = heartRateValue
         }
     }
-
 }
