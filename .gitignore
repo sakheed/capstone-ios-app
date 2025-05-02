@@ -108,4 +108,4 @@ fastlane/test_output
 # macOS
 #
 # General macOS file system files
-.DS_Store
+.DS_Storetf-env/
