@@ -224,29 +224,29 @@ struct DetectionScreen: View {
                 .padding()
                 .background(Color.black.opacity(0.8))
 
-                // Detection confidence views
-                VStack {
-                    HStack {
-                        Text("Hands")
+                // Gunshot detection result box
+                if let latestRecord = detectionStore.records.last, latestRecord.result.lowercased() == "gunshot" {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("🔫 Gunshot Detected!")
+                            .font(.title2)
+                            .fontWeight(.bold)
                             .foregroundColor(.white)
-                        Spacer()
-                        ProgressView(value: 0.85)
-                    }
-                    HStack {
-                        Text("Finger Snapping")
-                            .foregroundColor(.white)
-                        Spacer()
-                        ProgressView(value: 0.41)
-                    }
-                    HStack {
-                        Text("Clapping")
-                            .foregroundColor(.white)
-                        Spacer()
-                        ProgressView(value: 0.15)
-                    }
-                }
-                .padding()
 
+                        Text(String(format: "Confidence: %.1f%%", latestRecord.confidence * 100))
+                            .font(.title3)
+                            .foregroundColor(.white)
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.blue.opacity(0.8))
+                    .cornerRadius(12)
+                    .padding(.horizontal)
+                }
+                else {
+                    Text("No detection yet")
+                            .foregroundColor(.gray)
+                            .padding()
+                }
                 // Debug info for audio data
                 VStack {
                     Text("Frequency: \(String(format: "%.2f", audioRecorder.frequency)) Hz")
